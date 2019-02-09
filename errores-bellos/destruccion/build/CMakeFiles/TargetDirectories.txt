@@ -1,4 +1,0 @@
-/home/dhas/uni/visionArtificial/errores-bellos/destruccion/build/CMakeFiles/rebuild_cache.dir
-/home/dhas/uni/visionArtificial/errores-bellos/destruccion/build/CMakeFiles/mezcl.dir
-/home/dhas/uni/visionArtificial/errores-bellos/destruccion/build/CMakeFiles/edit_cache.dir
-/home/dhas/uni/visionArtificial/errores-bellos/destruccion/build/CMakeFiles/dist.dir
