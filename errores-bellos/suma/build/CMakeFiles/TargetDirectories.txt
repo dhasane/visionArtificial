@@ -1,0 +1,4 @@
+/home/dhas/uni/visionArtificial/errores-bellos/suma/build/CMakeFiles/rebuild_cache.dir
+/home/dhas/uni/visionArtificial/errores-bellos/suma/build/CMakeFiles/edit_cache.dir
+/home/dhas/uni/visionArtificial/errores-bellos/suma/build/CMakeFiles/ej1_itk.dir
+/home/dhas/uni/visionArtificial/errores-bellos/suma/build/CMakeFiles/ej1_ocv.dir

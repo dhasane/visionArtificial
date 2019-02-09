@@ -1,0 +1,3 @@
+/home/dhas/uni/visionArtificial/errores-bellos/Untitled Folder/build/CMakeFiles/rebuild_cache.dir
+/home/dhas/uni/visionArtificial/errores-bellos/Untitled Folder/build/CMakeFiles/err1.dir
+/home/dhas/uni/visionArtificial/errores-bellos/Untitled Folder/build/CMakeFiles/edit_cache.dir
