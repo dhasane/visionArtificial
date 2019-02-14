@@ -1,0 +1,4 @@
+/home/dhas/uni/visionArtificial/ejercicios/ej2/03_rescale_intensity/build/CMakeFiles/rebuild_cache.dir
+/home/dhas/uni/visionArtificial/ejercicios/ej2/03_rescale_intensity/build/CMakeFiles/pr3_rescale_int_itk.dir
+/home/dhas/uni/visionArtificial/ejercicios/ej2/03_rescale_intensity/build/CMakeFiles/edit_cache.dir
+/home/dhas/uni/visionArtificial/ejercicios/ej2/03_rescale_intensity/build/CMakeFiles/re_itk.dir

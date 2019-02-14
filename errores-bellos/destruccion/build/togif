@@ -1,1 +1,0 @@
-ffmpeg	-framerate 5 -threads 1  -i copias/*.png  -maxrate 2M -y  output.gif

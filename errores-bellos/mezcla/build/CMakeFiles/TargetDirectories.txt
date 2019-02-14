@@ -1,3 +1,0 @@
-/home/dhas/uni/visionArtificial/errores-bellos/mezcla/build/CMakeFiles/rebuild_cache.dir
-/home/dhas/uni/visionArtificial/errores-bellos/mezcla/build/CMakeFiles/mezcl.dir
-/home/dhas/uni/visionArtificial/errores-bellos/mezcla/build/CMakeFiles/edit_cache.dir
