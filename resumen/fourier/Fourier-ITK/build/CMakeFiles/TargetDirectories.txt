@@ -1,0 +1,4 @@
+/home/dhas/uni/vision/visionArtificial/ejercicios/ej6/Fourier-ITK/build/CMakeFiles/rebuild_cache.dir
+/home/dhas/uni/vision/visionArtificial/ejercicios/ej6/Fourier-ITK/build/CMakeFiles/edit_cache.dir
+/home/dhas/uni/vision/visionArtificial/ejercicios/ej6/Fourier-ITK/build/CMakeFiles/FourierTransform.dir
+/home/dhas/uni/vision/visionArtificial/ejercicios/ej6/Fourier-ITK/build/CMakeFiles/FilterInFourier.dir

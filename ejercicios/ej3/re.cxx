@@ -29,13 +29,6 @@ int main(int argc, char** argv )
     return( -1);
   }
 
-  
-
-    
-  //    t.at<double>(2,2) = 1;
-
-  // traslacion (-42,37)
-
   cv::Mat tras(2,3,CV_64F, Scalar(0.0));
 
   tras.at<double>(0,0) = 0.656;
@@ -48,7 +41,7 @@ int main(int argc, char** argv )
       
   cv::Mat dest;
   cv::Size size(image.cols,image.rows);
-  warpAffine(image, dest, tras, size, INTER_LINEAR, BORDER_CONSTANT);
+  warpAffine(image, dest, tras, size, INTER_LINEAR, BORDER_CONSTANT); // esto realiza todos los movimientos de golpe, de forma un poco mas limpia 
   
   // Write results
   std::stringstream ss( argv[ 1 ] );
@@ -60,7 +53,7 @@ int main(int argc, char** argv )
   cv::Mat esc(2,3,CV_64F, Scalar(0.0)); // escalar 
   esc.at<double>(0,0) = 0.8;
   esc.at<double>(1,1) = 0.8;
-  warpAffine(image, dest, esc, size, INTER_LINEAR, BORDER_CONSTANT);
+  warpAffine(image, dest, esc, size, INTER_LINEAR, BORDER_CONSTANT); 
 
   cv::Mat mov(2,3,CV_64F, Scalar(0.0)); // mover
   mov.at<double>(0,0) = 1;
