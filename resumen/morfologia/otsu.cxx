@@ -207,20 +207,21 @@ int main ( int argc, char** argv )
 
     for(  ; it != end, az != eaz, ro != ero, ve != eve; ++it, ++az, ++ro, ++ve)
     {
-        if ( (*it)[0] > umbAzul  ) { (*az)[0] = 255; } // azul
-        else                       { (*az)[0] = 0;   }
+        if ( (*it)[0] > umbAzul  ) { (*az)[0] = 255; (*it)[0] = 255 ; } // azul
+        else                       { (*az)[0] = 0;   (*it)[0] = 0   ; }
 
-        if ( (*it)[1] > umbRojo  ) { (*ve)[1] = 255; } // verde 
-        else                       { (*ve)[1] = 0;   }
+        if ( (*it)[1] > umbRojo  ) { (*ve)[1] = 255; (*it)[0] = 255 ; } // verde 
+        else                       { (*ve)[1] = 0;   (*it)[0] = 0   ; }
 
-        if ( (*it)[2] > umbVerde ) { (*ro)[2] = 255; } // rojo 
-        else                       { (*ro)[2] = 0;   }
+        if ( (*it)[2] > umbVerde ) { (*ro)[2] = 255; (*it)[0] = 255 ; } // rojo 
+        else                       { (*ro)[2] = 0;   (*it)[0] = 0   ; }
     }
 
     imwrite("azul.jpg",  AZ);
     imwrite("rojo.jpg",  RO);
     imwrite("verde.jpg", VE);
 
+    imwrite("union.jpg", src);
     
     return 0;
 }
