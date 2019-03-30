@@ -1,4 +1,0 @@
-/home/dhas/uni/vision/visionArtificial/ejercicios/ej5/build/CMakeFiles/rebuild_cache.dir
-/home/dhas/uni/vision/visionArtificial/ejercicios/ej5/build/CMakeFiles/edit_cache.dir
-/home/dhas/uni/vision/visionArtificial/ejercicios/ej5/build/CMakeFiles/ejemplo.dir
-/home/dhas/uni/vision/visionArtificial/ejercicios/ej5/build/CMakeFiles/filtro_ocv.dir

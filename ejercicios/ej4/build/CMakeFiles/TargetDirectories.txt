@@ -1,3 +1,0 @@
-/home/dhas/uni/vision/visionArtificial/ejercicios/ej4/build/CMakeFiles/rebuild_cache.dir
-/home/dhas/uni/vision/visionArtificial/ejercicios/ej4/build/CMakeFiles/2drigid.dir
-/home/dhas/uni/vision/visionArtificial/ejercicios/ej4/build/CMakeFiles/edit_cache.dir
