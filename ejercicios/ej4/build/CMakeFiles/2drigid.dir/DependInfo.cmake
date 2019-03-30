@@ -23,7 +23,6 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "ITKFactoryRegistration"
   "/usr/local/include/ITK-5.0"
   "/usr/local/include/ITK-5.0/Utilities"
-  "/usr/local/include"
   )
 
 # Targets to which this target links.

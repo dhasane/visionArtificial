@@ -1,0 +1,3 @@
+/home/dhas/uni/vision/visionArtificial/parcial/kernels/build/CMakeFiles/rebuild_cache.dir
+/home/dhas/uni/vision/visionArtificial/parcial/kernels/build/CMakeFiles/kernels.dir
+/home/dhas/uni/vision/visionArtificial/parcial/kernels/build/CMakeFiles/edit_cache.dir
