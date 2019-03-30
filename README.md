@@ -1,2 +1,2 @@
 # visionArtificial
-repositorio de la clase vision artificial
+repositorio de metodos de vision artificial
