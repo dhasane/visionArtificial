@@ -1,3 +1,0 @@
-/home/dhas/uni/vision/visionArtificial/metodos/bordes/build/CMakeFiles/rebuild_cache.dir
-/home/dhas/uni/vision/visionArtificial/metodos/bordes/build/CMakeFiles/bordes.dir
-/home/dhas/uni/vision/visionArtificial/metodos/bordes/build/CMakeFiles/edit_cache.dir
