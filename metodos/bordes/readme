@@ -1,0 +1,8 @@
+
+siendo directorio una carpeta cualquiera con fotos en formato jpg o jpeg
+
+para facilitar el proceso de pruebas, hice el bash 'run' que ingresa todas las imagenes al programa. Las nuevas imagenes quedan guardadas en el archivo original, para poder hacer comparaciones.
+./run directorio
+
+
+para eliminar las fotos de resultado hay que correr ./clean directorio

@@ -22,22 +22,21 @@ using namespace std;
 // solo sirve cuando se quiere efectuar el kernel sobre la misma matriz de inicio, en vez guardarlo en otra
 Mat aplicarKernel(Mat img, Mat kernel)
 {
+  cv::Mat dst;
+
   Point anchor = Point( -1, -1 );
   double delta = 0;
   int ddepth = -1;
 
-  filter2D(img, img , ddepth , kernel , anchor, delta, BORDER_DEFAULT );
+  filter2D(img, dst , ddepth , kernel , anchor, delta, BORDER_DEFAULT );
   cout<<kernel<<endl;
-  return img;
+  return dst.clone();
 }
 
 
 Mat gauss(Mat img)
 {
   Mat dst;
-  Point anchor = Point( -1, -1 );
-  double delta = 0;
-  int ddepth = -1;
 
   Mat_<float> gauss(3,3);
   //gauss  << 3, 2, 3,
@@ -50,7 +49,8 @@ Mat gauss(Mat img)
             1, 1, 1;
   gauss /= 9;
 
-  filter2D(img, dst , ddepth , gauss , anchor, delta, BORDER_DEFAULT );
+  dst = aplicarKernel(img,gauss);
+  // filter2D(img, dst , ddepth , gauss , anchor, delta, BORDER_DEFAULT );
   cout<<gauss<<endl;
   
   MatIterator_< Vec3b > it, end, it2, end2;
@@ -63,74 +63,100 @@ Mat gauss(Mat img)
 
   for(  ; it != end, it2 != end2; ++it, ++it2)
   {
-    *it -= *it2 ;
+    *it2 -= *it ;
   }
 
-  return img;
+  return dst.clone();
 }
 
 Mat difSeparada(Mat img)
 {
+  cv::Mat dst;
   Mat_<float> diferencia(3,3);
   diferencia << 0, -1,  0,
                 1,  0, -1,
                 0,  1,  0;
 
-  img = aplicarKernel( img, diferencia );
+  dst = aplicarKernel( img, diferencia );
 
-  return img;
+  return dst.clone();
 }
 
 Mat roberts(Mat img)
 {
+  cv::Mat dst;
   Mat_<float> diferencia(3,3);
   diferencia << -1,  0, -1,
                  0,  2,  0,
                  0,  0,  0;
-  diferencia /= 2;
+  //diferencia /= 2;
 
-  img = aplicarKernel( img, diferencia );
+  dst = aplicarKernel( img, diferencia );
 
-  return img;
+  return dst.clone();
 }
 
 Mat difPixeles(Mat img)
 {
+  cv::Mat dst;
   Mat_<float> diferencia(3,3);
   diferencia <<  0,  -1,   0,
                  0,   2,  -1,
                  0,   0,   0;
 
-  img = aplicarKernel( img, diferencia );
+  dst = aplicarKernel( img, diferencia );
 
-  return img;
+  return dst.clone();
 }
 
 Mat prueba(Mat img)
 {
+  cv::Mat dst;
   Mat_<float> diferencia(3,3);
-  diferencia <<  -1,  -1,  -1,
-                  1,   2,   1,
-                  0,   1,   0;
-  diferencia /= 2;
-  img = aplicarKernel( img, diferencia );
+  /*
+  diferencia <<  1 , 0 , -1 ,
+                 0 , 0 ,  0 ,
+                -1 , 0 ,  1 ;
+  */
 
-  return img;
+  /*
+  diferencia << -1 , 0 , -1 ,
+                 0 , 0 ,  0 ,
+                -1 , 0 ,  3 ;
+  */
+
+  /*
+  diferencia << -1 , 1 , -1 ,
+                 1 , 0 ,  1 ,
+                -1 , 1 , -1 ;
+  */
+  /*
+  diferencia << -1 ,  2 , -1 ,
+                 2 , -4 ,  2 ,
+                -1 ,  2 , -1 ;
+  */
+  diferencia <<  2 , -1 ,  2 ,
+                -1 , -4 , -1 ,
+                 2 , -1 ,  2 ;
+
+  //diferencia /= 2;
+  dst = aplicarKernel( img, diferencia );
+
+  return dst.clone();
 }
 
 Mat canny(Mat img)
 {
-  Point anchor = Point( -1, -1 );
-  double delta = 0;
-  int ddepth = -1;
+  cv::Mat dst;
+
   Mat_<float> gauss(3,3);
   gauss  << 1, 1, 1,
             1, 1, 1,
             1, 1, 1;
   gauss /= 9;
-  
-  filter2D(img, img , ddepth , gauss , anchor, delta, BORDER_DEFAULT );
+  dst = aplicarKernel(img, gauss);
   cout<<gauss<<endl;
+
   //*/
   float val2 = 0.25;
   Mat_<float> sobelx(3,3);
@@ -139,14 +165,14 @@ Mat canny(Mat img)
               val2,   0,   -val2;
   cout<<sobelx<<endl;
 
-  filter2D(img, img , ddepth , sobelx , anchor, delta, BORDER_DEFAULT );
+  dst = aplicarKernel(dst, sobelx);
 
   Mat_<float> sobely(3,3);
   sobely << -val2, -2*val2,  -val2,
                 0,       0,      0,
              val2,  2*val2,   val2;
 
-  filter2D(img, img , ddepth , sobely , anchor, delta, BORDER_DEFAULT );
+  dst = aplicarKernel(dst, sobely);
 
   cout<<sobely<<endl;
 
@@ -154,7 +180,7 @@ Mat canny(Mat img)
 
   // binarisar
 
-  return img;
+  return dst.clone();
 }
 
 
@@ -177,14 +203,37 @@ int main ( int argc, char** argv )
     }
     
     // falta alguna forma de definir el grosor ...
+    string metodo;
+    std::stringstream ss( argv[ 1 ] );
+    std::string basename;
+    getline( ss, basename, '.' );
 
-    //dst = canny(src);
+    /*
+    dst = canny(src);
     dst = gauss(src);
-    //dst = difSeparada(src);
-    //dst = roberts(src);
-    //dst = difPixeles(src);
-    //dst = prueba(src);
-    imwrite("resultado.jpg", dst );
+    dst = difSeparada(src);
+    dst = roberts(src);
+    dst = difPixeles(src);
+    dst = prueba(src);
+    */
+    metodo = "canny";
+    imwrite( basename + metodo + "resultado.jpg" , canny(src));
+    
+    metodo = "gauss";
+    imwrite( basename + metodo + "resultado.jpg" , gauss(src) );
+    
+    metodo = "difsep";
+    imwrite( basename + metodo + "resultado.jpg" , difSeparada(src) );
+
+    metodo = "roberts";
+    imwrite( basename + metodo + "resultado.jpg" , roberts(src) );
+    
+    metodo = "difpixeles";
+    imwrite( basename + metodo + "resultado.jpg" , difPixeles(src) );
+    
+    metodo = "experimental";
+    imwrite( basename + metodo + "resultado.jpg" , prueba(src) );
+    
     
     return 0;
 }

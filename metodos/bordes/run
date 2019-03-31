@@ -1,0 +1,14 @@
+
+
+DIR=$1
+
+rm $DIR/*resultado*
+
+# para poder hacer pruebas con muchas imagenes de una 
+
+for file in  $DIR/*.j*g 
+do
+	echo ./build/bordes $file
+	./build/bordes $file
+
+done
