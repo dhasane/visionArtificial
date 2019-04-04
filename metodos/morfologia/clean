@@ -1,3 +1,7 @@
 DIR=$1
 
-rm $DIR/*resultado*
+rm $DIR/*rojo*
+rm $DIR/*verde*
+rm $DIR/*azul*
+rm $DIR/*union*
+rm $DIR/*gris*
