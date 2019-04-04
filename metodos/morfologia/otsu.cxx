@@ -90,19 +90,8 @@ float encontrarUmbral(int color[])
     return minv;
 }
 
-int main ( int argc, char** argv )
+void otsu(Mat &src, Mat &AZ, Mat &VE, Mat &RO)
 {
-    //const char* imageName = argc >=2 ? argv[1]: "../512x512-Gaussian-Noise.jpg"; // quiero aprender a usar esto 
-    const char* imageName = argv[1];
-    // se carga la imagen 
-    Mat src = imread( imageName, IMREAD_COLOR ); // Load an image
-    if( src.empty() )
-    {
-        printf(" Error opening image\n");
-        printf(" Program Arguments: [image_name -- default ../512x512-Gaussian-Noise.jpg] \n");
-        return -1;
-    }
-    
     // vectores de aparicion de intensidades 
     int verde[256] = {0};
     int rojo [256] = {0};
@@ -119,6 +108,9 @@ int main ( int argc, char** argv )
         rojo [(*it)[2]] += 1;
     }
 
+    for (int a = 0 ; a < 256 ; a ++)
+        cout<<azul[a]<<"   "<<rojo[a]<<"   "<<verde[a]<<endl;
+    
     // se encuentran los umbrales 
 
     float umbAzul  = encontrarUmbral(azul);
@@ -127,11 +119,13 @@ int main ( int argc, char** argv )
 
     float umbRojo  = encontrarUmbral(rojo);
 
-    // se crea una nueva imagen en la que se guardaran los valores 
-    Mat AZ(src.rows, src.cols, CV_8UC3, Scalar( 0 , 0 , 0 ));
-    Mat RO(src.rows, src.cols, CV_8UC3, Scalar( 0 , 0 , 0 ));
-    Mat VE(src.rows, src.cols, CV_8UC3, Scalar( 0 , 0 , 0 ));
 
+    cout<<umbAzul<<"   "<<umbRojo<<"   "<<umbVerde<<endl;
+
+    // se crea una nueva imagen en la que se guardaran los valores 
+    //Mat AZ(src.rows, src.cols, CV_8UC3, Scalar( 0 , 0 , 0 ));
+    //Mat RO(src.rows, src.cols, CV_8UC3, Scalar( 0 , 0 , 0 ));
+    //Mat VE(src.rows, src.cols, CV_8UC3, Scalar( 0 , 0 , 0 ));
 
     // se inicializan los iteradores 
     it = src.begin< Vec3b >( );
@@ -160,11 +154,46 @@ int main ( int argc, char** argv )
         else                       { (*ro)[2] = 0;   (*it)[0] = 0   ; }
     }
 
-    imwrite("azul.jpg" ,  AZ);
-    imwrite("rojo.jpg" ,  RO);
-    imwrite("verde.jpg",  VE);
+}
 
-    imwrite("union.jpg",  src);
+int main ( int argc, char** argv )
+{
+    //const char* imageName = argc >=2 ? argv[1]: "../512x512-Gaussian-Noise.jpg"; // quiero aprender a usar esto 
+    const char* imageName = argv[1];
+    // se carga la imagen 
+    Mat src = imread( imageName, IMREAD_COLOR ); // Load an image
+    
+    if( src.empty() )
+    {
+        printf(" Error opening image\n");
+        printf(" Program Arguments: [image_name -- default ../512x512-Gaussian-Noise.jpg] \n");
+        return -1;
+    }
+    
+    Mat matGris;
+    cvtColor( src, matGris, COLOR_RGB2GRAY);
+
+    string metodo;
+    std::stringstream ss( argv[ 1 ] );
+    std::string basename;
+    getline( ss, basename, '.' );
+
+    // se les da el mismo tamaño que la imagen original
+    Mat AZ(src.rows, src.cols, CV_8UC3, Scalar( 0 , 0 , 0 ));
+    Mat RO(src.rows, src.cols, CV_8UC3, Scalar( 0 , 0 , 0 ));
+    Mat VE(src.rows, src.cols, CV_8UC3, Scalar( 0 , 0 , 0 ));
+
+    otsu(src,AZ,VE,RO);
+
+    imwrite(basename+"azul.jpg" ,  AZ);
+    imwrite(basename+"rojo.jpg" ,  RO);
+    imwrite(basename+"verde.jpg",  VE);
+
+    imwrite(basename+"union.jpg",  src);
+
+
+    otsu(matGris,AZ,VE,RO);
+    imwrite(basename+"gris.jpg",  matGris); // tal vez para lograr esto seria chevere de una en un solo llamado ... lo hare cuando tenga mas tiempo
     
     return 0;
 }

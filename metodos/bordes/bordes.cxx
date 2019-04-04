@@ -112,8 +112,14 @@ Mat difPixeles(Mat img)
 Mat prueba(Mat img)
 {
   cv::Mat dst;
-  Mat_<float> diferencia(3,3);
-  /*
+
+  //int tam = 7;
+  int tam = 3;
+  Mat_<float> diferencia(tam,tam);
+  
+  //*/
+
+  /*/
   diferencia <<  1 , 0 , -1 ,
                  0 , 0 ,  0 ,
                 -1 , 0 ,  1 ;
@@ -140,6 +146,28 @@ Mat prueba(Mat img)
                  2 , -1 ,  2 ;
 
   //diferencia /= 2;
+  dst = aplicarKernel( img, diferencia );
+
+  return dst.clone();
+}
+
+
+Mat pruebaCirc(Mat img)
+{
+  cv::Mat dst;
+
+  int tam = 7;
+  Mat_<float> diferencia(tam,tam);
+  
+  diferencia <<  4 ,  4 ,  2 ,  2  ,  2 ,  4 , 4 , // 22
+                 4 ,  2 ,  2 , -2  ,  2 ,  2 , 4 , // 14     // 36
+                 4 ,  2 , -3 , -4  , -3 ,  2 , 4 , // 3
+                 2 , -2 , -4 , -10 , -4 , -2 , 2 , // -18    // -12       // total 60
+                 4 ,  2 , -3 , -4  , -3 ,  2 , 4 , // 3
+                 4 ,  2 ,  2 , -2  ,  2 ,  2 , 4 , // 14     // 36
+                 4 ,  4 ,  2 ,  2  ,  2 ,  4 , 4 ; // 22
+
+  diferencia /= 60;
   dst = aplicarKernel( img, diferencia );
 
   return dst.clone();
@@ -218,6 +246,9 @@ int main ( int argc, char** argv )
     */
     metodo = "canny";
     imwrite( basename + metodo + "resultado.jpg" , canny(src));
+
+    metodo = "circular";
+    imwrite( basename + metodo + "resultado.jpg" , pruebaCirc(src)-src );
     
     metodo = "gauss";
     imwrite( basename + metodo + "resultado.jpg" , gauss(src) );
