@@ -108,8 +108,8 @@ void otsu(Mat &src, Mat &AZ, Mat &VE, Mat &RO)
         rojo [(*it)[2]] += 1;
     }
 
-    for (int a = 0 ; a < 256 ; a ++)
-        cout<<azul[a]<<"   "<<rojo[a]<<"   "<<verde[a]<<endl;
+    //for (int a = 0 ; a < 256 ; a ++)
+    //    cout<<azul[a]<<"   "<<rojo[a]<<"   "<<verde[a]<<endl;
     
     // se encuentran los umbrales 
 
@@ -120,7 +120,7 @@ void otsu(Mat &src, Mat &AZ, Mat &VE, Mat &RO)
     float umbRojo  = encontrarUmbral(rojo);
 
 
-    cout<<umbAzul<<"   "<<umbRojo<<"   "<<umbVerde<<endl;
+    //cout<<umbAzul<<"   "<<umbRojo<<"   "<<umbVerde<<endl;
 
     // se crea una nueva imagen en la que se guardaran los valores 
     //Mat AZ(src.rows, src.cols, CV_8UC3, Scalar( 0 , 0 , 0 ));
@@ -183,13 +183,13 @@ int main ( int argc, char** argv )
     Mat RO(src.rows, src.cols, CV_8UC3, Scalar( 0 , 0 , 0 ));
     Mat VE(src.rows, src.cols, CV_8UC3, Scalar( 0 , 0 , 0 ));
 
-    otsu(src,AZ,VE,RO);
+    //otsu(src,AZ,VE,RO);
 
-    imwrite(basename+"azul.jpg" ,  AZ);
-    imwrite(basename+"rojo.jpg" ,  RO);
-    imwrite(basename+"verde.jpg",  VE);
+    //imwrite(basename+"azul.jpg" ,  AZ);
+    //imwrite(basename+"rojo.jpg" ,  RO);
+    //imwrite(basename+"verde.jpg",  VE);
 
-    imwrite(basename+"union.jpg",  src);
+    //imwrite(basename+"union.jpg",  src);
 
 
     otsu(matGris,AZ,VE,RO);

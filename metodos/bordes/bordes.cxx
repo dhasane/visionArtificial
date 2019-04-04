@@ -177,6 +177,15 @@ Mat canny(Mat img)
 {
   cv::Mat dst;
 
+  int lowTh = 45;
+  int highTh = 90;
+  cv::cvtColor(img, dst, COLOR_RGB2GRAY);                   // convert to grayscale
+
+  cv::GaussianBlur(dst,dst,cv::Size(5, 5),1.8);           // Blur Effect             
+
+  cv::Canny(dst,dst,lowTh,highTh);       // Canny Edge Image
+
+  /*
   Mat_<float> gauss(3,3);
   gauss  << 1, 1, 1,
             1, 1, 1,
@@ -185,7 +194,6 @@ Mat canny(Mat img)
   dst = aplicarKernel(img, gauss);
   cout<<gauss<<endl;
 
-  //*/
   float val2 = 0.25;
   Mat_<float> sobelx(3,3);
   sobelx <<   val2,   0,   -val2,
@@ -203,7 +211,7 @@ Mat canny(Mat img)
   dst = aplicarKernel(dst, sobely);
 
   cout<<sobely<<endl;
-
+  //*/
   // aqui hace falta la supresion no maximal :v
 
   // binarisar
@@ -244,23 +252,26 @@ int main ( int argc, char** argv )
     dst = difPixeles(src);
     dst = prueba(src);
     */
+
+
+    
     metodo = "canny";
     imwrite( basename + metodo + "resultado.jpg" , canny(src));
 
     metodo = "circular";
-    imwrite( basename + metodo + "resultado.jpg" , pruebaCirc(src)-src );
+    //imwrite( basename + metodo + "resultado.jpg" , pruebaCirc(src)-src );
     
     metodo = "gauss";
     imwrite( basename + metodo + "resultado.jpg" , gauss(src) );
     
     metodo = "difsep";
-    imwrite( basename + metodo + "resultado.jpg" , difSeparada(src) );
+    //imwrite( basename + metodo + "resultado.jpg" , difSeparada(src) );
 
     metodo = "roberts";
-    imwrite( basename + metodo + "resultado.jpg" , roberts(src) );
+    //imwrite( basename + metodo + "resultado.jpg" , roberts(src) );
     
     metodo = "difpixeles";
-    imwrite( basename + metodo + "resultado.jpg" , difPixeles(src) );
+    //imwrite( basename + metodo + "resultado.jpg" , difPixeles(src) );
     
     metodo = "experimental";
     imwrite( basename + metodo + "resultado.jpg" , prueba(src) );
