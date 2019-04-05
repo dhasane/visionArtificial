@@ -4,13 +4,17 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 ## = Project name =
 ## ================
 
-PROJECT( Intensities_ITK_OCV )
+PROJECT( CARAS )
 
 ## ============
 ## = Packages =
 ## ============
 
 FIND_PACKAGE( OpenCV REQUIRED )
+#FIND_PACKAGE(ITK REQUIRED)
+#IF(ITK_FOUND)
+#  INCLUDE(${ITK_USE_FILE})
+##ENDIF(ITK_FOUND)
 
 ## ================================================
 ## = Do not allow to build inside the source tree =
@@ -36,12 +40,5 @@ MARK_AS_ADVANCED(
 ## = Programs to compile =
 ## =======================
 
-#ADD_EXECUTABLE( pr3_rescale_int_itk 03_rescale_intensity_itk.cxx )
-#TARGET_LINK_LIBRARIES( pr3_rescale_int_itk ${ITK_LIBRARIES} )
-
-
-ADD_EXECUTABLE( seg seg.cxx )
-TARGET_LINK_LIBRARIES( seg ${OpenCV_LIBS} )
-
-ADD_EXECUTABLE( backcanny backcanny.cxx )
-TARGET_LINK_LIBRARIES( backcanny ${OpenCV_LIBS} )
+ADD_EXECUTABLE( caras caras.cxx )
+TARGET_LINK_LIBRARIES( caras ${OpenCV_LIBS} )

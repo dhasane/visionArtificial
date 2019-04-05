@@ -1,0 +1,7 @@
+
+backProjection/build/bping ~/Imágenes/prueba/cara.jpeg 180
+
+morfologia/build/otsu ~/Imágenes/prueba/carabp.jpg 
+
+bordes/build/bordes   ~/Imágenes/prueba/carabp.jpg
+#limpiar/build/limpiar ~/Imágenes/prueba/carabpexperimental.jpg

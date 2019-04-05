@@ -262,7 +262,7 @@ int main ( int argc, char** argv )
     //imwrite( basename + metodo + "resultado.jpg" , pruebaCirc(src)-src );
     
     metodo = "gauss";
-    imwrite( basename + metodo + "resultado.jpg" , gauss(src) );
+    //imwrite( basename + metodo + "resultado.jpg" , gauss(src) );
     
     metodo = "difsep";
     //imwrite( basename + metodo + "resultado.jpg" , difSeparada(src) );
@@ -274,8 +274,10 @@ int main ( int argc, char** argv )
     //imwrite( basename + metodo + "resultado.jpg" , difPixeles(src) );
     
     metodo = "experimental";
-    imwrite( basename + metodo + "resultado.jpg" , prueba(src) );
+    //imwrite( basename + metodo + "resultado.jpg" , prueba(src) );
+    imwrite( basename + metodo + ".jpg" , prueba(src) );
     
     
     return 0;
-}
+} 
+//bunterwind

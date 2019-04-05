@@ -4,9 +4,9 @@ DIR=$1
 
 # para poder hacer pruebas con muchas imagenes de una 
 
-for file in  $DIR/*.j*g
+for file in  $DIR/*.j*g 
 do
-	echo ./build/bordes $file
-	./build/bordes $file
+	echo ./build/caras $file
+	./build/caras $file
 
 done

@@ -36,12 +36,8 @@ MARK_AS_ADVANCED(
 ## = Programs to compile =
 ## =======================
 
-#ADD_EXECUTABLE( pr3_rescale_int_itk 03_rescale_intensity_itk.cxx )
-#TARGET_LINK_LIBRARIES( pr3_rescale_int_itk ${ITK_LIBRARIES} )
+ADD_EXECUTABLE( bp bp.cxx )
+TARGET_LINK_LIBRARIES( bp ${OpenCV_LIBS} )
 
-
-ADD_EXECUTABLE( seg seg.cxx )
-TARGET_LINK_LIBRARIES( seg ${OpenCV_LIBS} )
-
-ADD_EXECUTABLE( backcanny backcanny.cxx )
-TARGET_LINK_LIBRARIES( backcanny ${OpenCV_LIBS} )
+ADD_EXECUTABLE( bping bping.cxx )
+TARGET_LINK_LIBRARIES( bping ${OpenCV_LIBS} )
