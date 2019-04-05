@@ -19,7 +19,6 @@ using namespace cv;
 
 using namespace std;
 
-// solo sirve cuando se quiere efectuar el kernel sobre la misma matriz de inicio, en vez guardarlo en otra
 Mat aplicarKernel(Mat img, Mat kernel)
 {
   cv::Mat dst;

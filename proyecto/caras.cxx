@@ -5,8 +5,9 @@
 using namespace cv;
 using namespace std;
 
-Mat backProjection(Mat src, int bins);
+void backProjection(Mat src, Mat &dst , int bins);
 void otsu(Mat &src, Mat &dst);
+void suavisarGauss( Mat &img, Mat &dst , int kernel_size);
 
 int main( int argc, char* argv[] )
 {
@@ -21,9 +22,10 @@ int main( int argc, char* argv[] )
     }
     
     
-    // 65 es un muy buen valor
-    int bins = 80;
-    Mat forma = backProjection(src, bins);
+    
+    Mat forma = src.clone();
+    suavisarGauss ( forma, forma , 9 );
+    backProjection( forma, forma , 80);
 
     otsu( forma, forma );
 
@@ -44,7 +46,35 @@ int main( int argc, char* argv[] )
     return 0;
 }
 
-Mat backProjection(Mat src, int bins)
+// todo lo de aplicar kernels debe ir de aqui para abajo
+Mat aplicarKernel(Mat img, Mat kernel)
+{
+  cv::Mat dst;
+
+  Point anchor = Point( -1, -1 );
+  double delta = 0;
+  int ddepth = -1;
+
+  filter2D(img, dst , ddepth , kernel , anchor, delta, BORDER_DEFAULT );
+  cout<<kernel<<endl;
+  return dst.clone();
+}
+
+void suavisarGauss( Mat &img, Mat &dst , int kernel_size)
+{
+    Mat_<float> gauss(3,3);
+    //gauss  << 1, 1, 1,
+    //          1, 1, 1,
+    //          1, 1, 1;
+    //gauss /= 9;
+
+    //kernel_size = 3 ;
+    gauss = Mat::ones( kernel_size, kernel_size, CV_32F )/ (float)(kernel_size*kernel_size);
+    
+    dst = aplicarKernel(img,gauss);
+}
+
+void backProjection(Mat src, Mat &dst , int bins)
 {
     Mat hue, hsv;
     cvtColor( src, hsv, COLOR_BGR2HSV );
@@ -58,10 +88,10 @@ Mat backProjection(Mat src, int bins)
     Mat hist;
     calcHist( &hue, 1, 0, Mat(), hist, 1, &histSize, &ranges, true, false );
     normalize( hist, hist, 0, 255, NORM_MINMAX, -1, Mat() );
-    Mat backproj;
-    calcBackProject( &hue, 1, 0, hist, backproj, &ranges, 1, true );
-    imwrite("back.jpg", backproj );
-    return backproj.clone();
+    //Mat dst;
+    calcBackProject( &hue, 1, 0, hist, dst, &ranges, 1, true );
+    //imwrite("back.jpg", backproj );
+    //return backproj.clone();
 }
 
 
