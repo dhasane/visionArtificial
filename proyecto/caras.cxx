@@ -7,7 +7,11 @@ using namespace std;
 
 void backProjection(Mat src, Mat &dst , int bins);
 void otsu(Mat &src, Mat &dst);
-void suavisarGauss( Mat &img, Mat &dst , int kernel_size);
+void suavisarPromedio( Mat &img, Mat &dst , int kernel_size);
+void suavisarExp(Mat img, Mat &dst);
+
+void limpiar(Mat &img,Mat &res, int tipoero, int tipodil, int tam);
+void recorrerFondoPlano(Mat &img);
 
 int main( int argc, char* argv[] )
 {
@@ -24,15 +28,23 @@ int main( int argc, char* argv[] )
     
     
     Mat forma = src.clone();
-    suavisarGauss ( forma, forma , 9 );
-    backProjection( forma, forma , 80);
+    //suavisarPromedio( forma, forma , 9 );
+    
+    //suavisarExp(forma, forma);
+    //GaussianBlur( forma, forma, Size( 7, 7), 0, 0 );//applying Gaussian filter 
 
+    //*
+    backProjection  ( forma, forma , 70);
+    //limpiar(forma, forma, 0, 0, 1);
+    //suavisarExp(forma, forma);
     otsu( forma, forma );
 
-    Mat dst;
-    cvtColor( src, dst, COLOR_RGB2GRAY);
+    cvtColor( forma, forma, COLOR_GRAY2BGR);
+    //*/
 
-    Mat res = dst - forma ;
+
+    //recorrerFondoPlano(forma);
+    
     // -----------------------------------------
 
     string metodo;
@@ -40,38 +52,114 @@ int main( int argc, char* argv[] )
     std::string basename;
     getline( ss, basename, '.' );
 
+    //*
+    Mat res = src + forma ;
     imwrite(basename+"proyecto.jpg", res );
-    imwrite(basename+"proyecto2.jpg", forma );
+    //*/
+    
+    imwrite(basename+"proyectoForma.jpg", forma );
 
     return 0;
 }
 
-// todo lo de aplicar kernels debe ir de aqui para abajo
-Mat aplicarKernel(Mat img, Mat kernel)
+void recorrerFondoPlano(Mat &img)
 {
-  cv::Mat dst;
+    MatIterator_< Vec3b > it, end;
+    it  = img.begin< Vec3b >( );
+    end = img.end  < Vec3b >( );
 
+    bool ini = false ; 
+
+    int val = 0 ;
+
+    for(  ; it != end; ++it) // contar aparicion de cada tonalidad
+    {
+        if (!ini)
+        {
+            val = (*it)[0] + (*it)[1] + (*it)[2];
+            ini = true;
+        }
+
+        if ( abs(val - ( (*it)[0] + (*it)[1] + (*it)[2])  ) < 10 )
+        {
+            (*it)[0] = 0;
+            (*it)[1] = 0;
+            (*it)[2] = 0;
+        }
+    }
+}
+
+void erocion( Mat &img, Mat &src, int erosion_elem, int erosion_size )
+{
+    int erosion_type;
+    if( erosion_elem == 0 ){ erosion_type = MORPH_RECT; }
+    else if( erosion_elem == 1 ){ erosion_type = MORPH_CROSS; }
+    else if( erosion_elem == 2) { erosion_type = MORPH_ELLIPSE; }
+
+    Mat element = getStructuringElement( erosion_type,
+                                        Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                                        Point( erosion_size, erosion_size ) );
+
+    erode( img, src, element );
+}
+
+/** @function Dilation */
+void dilatar( Mat &img,Mat &src, int dilation_elem, int dilation_size )
+{
+  int dilation_type;
+  if( dilation_elem == 0 ){ dilation_type = MORPH_RECT; }
+  else if( dilation_elem == 1 ){ dilation_type = MORPH_CROSS; }
+  else if( dilation_elem == 2) { dilation_type = MORPH_ELLIPSE; }
+
+  Mat element = getStructuringElement( dilation_type,
+                                       Size( 2*dilation_size + 1, 2*dilation_size+1 ),
+                                       Point( dilation_size, dilation_size ) );
+  /// Apply the dilation operation
+  dilate( img , src, element );
+}
+
+// ambas comparten el tamaño
+void limpiar(Mat &img,Mat &res, int tipoero, int tipodil, int tam)
+{
+    erocion(img ,res , tipoero , tam );
+    dilatar(res ,res , tipodil , tam );
+}
+
+// todo lo de aplicar kernels debe ir de aqui para abajo
+void aplicarKernel(Mat img, Mat &dst, Mat kernel)
+{
   Point anchor = Point( -1, -1 );
   double delta = 0;
   int ddepth = -1;
 
   filter2D(img, dst , ddepth , kernel , anchor, delta, BORDER_DEFAULT );
-  cout<<kernel<<endl;
-  return dst.clone();
+  //cout<<kernel<<endl;
 }
 
-void suavisarGauss( Mat &img, Mat &dst , int kernel_size)
+void suavisarExp(Mat img, Mat &dst)
 {
-    Mat_<float> gauss(3,3);
-    //gauss  << 1, 1, 1,
-    //          1, 1, 1,
-    //          1, 1, 1;
-    //gauss /= 9;
-
-    //kernel_size = 3 ;
-    gauss = Mat::ones( kernel_size, kernel_size, CV_32F )/ (float)(kernel_size*kernel_size);
+    Mat_<float> diferencia(3,3);
+    int val = 70;
+    //*
+    diferencia <<   -val,  val, -val,
+                     val,    1,  val,
+                    -val,  val, -val;
+    /*/
     
-    dst = aplicarKernel(img,gauss);
+    diferencia <<   val,  val, val,
+                    val, -val, val,
+                    val,  val, val;
+    diferencia /= val*7;
+    //*/
+    aplicarKernel( img,dst, diferencia );
+}
+
+
+void suavisarPromedio( Mat &img, Mat &dst , int kernel_size)
+{
+    Mat_<float> kernel(3,3);
+    kernel = Mat::ones( kernel_size, kernel_size, CV_32F )/ (float)(kernel_size*kernel_size);
+    aplicarKernel(img,dst,kernel);
 }
 
 void backProjection(Mat src, Mat &dst , int bins)
@@ -94,6 +182,7 @@ void backProjection(Mat src, Mat &dst , int bins)
     //return backproj.clone();
 }
 
+/// ------------------------------------------- otsu 
 
 // encuentra la varianza para un color y su peso respectivo 
 void var(int color[] ,int total,int liminf, int limsup,float & varianza, float & peso)
@@ -136,7 +225,7 @@ float encontrarUmbral(int color[])
     {
         totalcolor += color[i];
     }
-    cout<<totalcolor<<endl;
+    //cout<<totalcolor<<endl;
 
     float vA  = 0;
     float cvA = 0;
@@ -172,11 +261,12 @@ float encontrarUmbral(int color[])
             varmin = varact;
         }
     }
-    cout<<"umbral optimo en : "<<minv<<" con "<<varmin<<endl;
+    //cout<<"umbral optimo en : "<<minv<<" con "<<varmin<<endl;
 
     return minv;
 }
 
+// solo sirve para un color, esto porque debe estar la imagen en blanco y negro
 void otsu(Mat &src, Mat &dst)
 {
     //cvtColor( src, dst, COLOR_RGB2GRAY);

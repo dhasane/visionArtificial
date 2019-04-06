@@ -2,6 +2,8 @@
 
 DIR=$1
 
+./clean $DIR
+
 # para poder hacer pruebas con muchas imagenes de una 
 
 for file in  $DIR/*.j*g 
