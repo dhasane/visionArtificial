@@ -13,6 +13,8 @@ void suavisarExp(Mat img, Mat &dst);
 void limpiar(Mat &img,Mat &res, int tipoero, int tipodil, int tam);
 void recorrerFondoPlano(Mat &img);
 
+void histograma(Mat src,Mat &histImg);
+
 int main( int argc, char* argv[] )
 {
     CommandLineParser parser( argc, argv, "{@input |  | input image}" );
@@ -24,10 +26,12 @@ int main( int argc, char* argv[] )
         cout << "Usage: " << argv[0] << " <Input image>" << endl;
         return -1;
     }
-    
-    
-    
+    Mat hist;
+    histograma(src,hist);
+
+
     Mat forma = src.clone();
+
     //suavisarPromedio( forma, forma , 9 );
     
     //suavisarExp(forma, forma);
@@ -36,12 +40,12 @@ int main( int argc, char* argv[] )
     //*
     backProjection  ( forma, forma , 70);
     //limpiar(forma, forma, 0, 0, 1);
-    //suavisarExp(forma, forma);
+    suavisarExp(forma, forma);
     otsu( forma, forma );
+    Mat res = src + forma ;
 
-    cvtColor( forma, forma, COLOR_GRAY2BGR);
-    //*/
-
+    backProjection  ( res,res , 70);
+    res = src - res;
 
     //recorrerFondoPlano(forma);
     
@@ -52,14 +56,68 @@ int main( int argc, char* argv[] )
     std::string basename;
     getline( ss, basename, '.' );
 
-    //*
-    Mat res = src + forma ;
-    imwrite(basename+"proyecto.jpg", res );
-    //*/
     
+    imwrite(basename+"proyectohistograma.jpg", hist );
+
+    imwrite(basename+"proyecto.jpg", res );    
     imwrite(basename+"proyectoForma.jpg", forma );
 
     return 0;
+}
+void pruebaAgruparColores()
+{
+    int ncolores = 7 ; 
+    int pasoColor = 255 / ncolores;
+
+    /*Vec3b* colores = new Vec3b[ncolores];
+    for( int a = 0 ; a < ncolores ; a ++ )
+    {
+        colores[a] =
+    }
+    */
+    /*
+    // vectores de aparicion de intensidades 
+    int verde[256] = {0};
+    int rojo [256] = {0};
+    int azul [256] = {0};
+    
+    MatIterator_< Vec3b > it, end;
+    it  = src.begin< Vec3b >( );
+    end = src.end< Vec3b >( );
+
+    for(  ; it != end; ++it) // contar aparicion de cada tonalidad
+    {
+        azul [(*it)[0]] += 1;
+        verde[(*it)[1]] += 1;
+        rojo [(*it)[2]] += 1;
+    }
+    /*/
+}
+void histograma(Mat src,Mat &histImg)
+{
+    int bins = 255;
+    
+    Mat hue, hsv;
+    cvtColor( src, hsv, COLOR_BGR2HSV );
+    hue.create(hsv.size(), hsv.depth());
+    int ch[] = { 0, 0 };
+    mixChannels( &hsv, 1, &hue, 1, ch, 1 );
+
+    int histSize = MAX( bins, 2 );
+    float hue_range[] = { 0, 255 };
+    const float* ranges = { hue_range };
+    Mat hist;
+    calcHist( &hue, 1, 0, Mat(), hist, 1, &histSize, &ranges, true, false );
+    normalize( hist, hist, 0, 255, NORM_MINMAX, -1, Mat() );
+
+    int w = 400, h = 400;
+    int bin_w = cvRound( (double) w / histSize );
+    histImg = Mat::zeros( h, w, CV_8UC3 );
+    for (int i = 0; i < bins; i++)
+    {
+        rectangle( histImg, Point( i*bin_w, h ), Point( (i+1)*bin_w, h - cvRound( hist.at<float>(i)*h/255.0 ) ),
+                   Scalar( 0, 0, 255 ), FILLED );
+    }
 }
 
 void recorrerFondoPlano(Mat &img)
@@ -103,7 +161,6 @@ void erocion( Mat &img, Mat &src, int erosion_elem, int erosion_size )
     erode( img, src, element );
 }
 
-/** @function Dilation */
 void dilatar( Mat &img,Mat &src, int dilation_elem, int dilation_size )
 {
   int dilation_type;
@@ -118,7 +175,6 @@ void dilatar( Mat &img,Mat &src, int dilation_elem, int dilation_size )
   dilate( img , src, element );
 }
 
-// ambas comparten el tamaño
 void limpiar(Mat &img,Mat &res, int tipoero, int tipodil, int tam)
 {
     erocion(img ,res , tipoero , tam );
@@ -154,7 +210,6 @@ void suavisarExp(Mat img, Mat &dst)
     aplicarKernel( img,dst, diferencia );
 }
 
-
 void suavisarPromedio( Mat &img, Mat &dst , int kernel_size)
 {
     Mat_<float> kernel(3,3);
@@ -176,10 +231,9 @@ void backProjection(Mat src, Mat &dst , int bins)
     Mat hist;
     calcHist( &hue, 1, 0, Mat(), hist, 1, &histSize, &ranges, true, false );
     normalize( hist, hist, 0, 255, NORM_MINMAX, -1, Mat() );
-    //Mat dst;
+    
     calcBackProject( &hue, 1, 0, hist, dst, &ranges, 1, true );
-    //imwrite("back.jpg", backproj );
-    //return backproj.clone();
+    cvtColor( dst, dst, COLOR_GRAY2BGR);
 }
 
 /// ------------------------------------------- otsu 
@@ -246,7 +300,6 @@ float encontrarUmbral(int color[])
 
         var(color,totalcolor, corte+1, 256,cvA,cpA);
         
-        
         actv   = corte;
         varact = pA*vA + cpA*cvA;
 
@@ -269,7 +322,7 @@ float encontrarUmbral(int color[])
 // solo sirve para un color, esto porque debe estar la imagen en blanco y negro
 void otsu(Mat &src, Mat &dst)
 {
-    //cvtColor( src, dst, COLOR_RGB2GRAY);
+    cvtColor( src, dst, COLOR_RGB2GRAY);
 
     // vectores de aparicion de intensidades 
     int azul [256] = {0};
@@ -303,4 +356,6 @@ void otsu(Mat &src, Mat &dst)
         if ( (*it)[2] > umbral )  { (*it)[0] = 255 ; } // rojo 
         else                      { (*it)[0] = 0   ; }
     }
+
+    cvtColor( dst, dst, COLOR_GRAY2RGB);
 }

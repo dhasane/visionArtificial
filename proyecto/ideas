@@ -1,1 +1,5 @@
 si utilizo fourier, puedo encontrar que es lo que esta mas cerca al centro, haciendo que pueda decidir si, despues de binarizar, lo negro es la persona o lo blanco es la persona 
+
+mover los valores del histograma al centro, o por lo menos bajarle a los valores mas altos para eliminar los tonos mas brillantes 
+
+reducir la cantidad de bits utilizados para el reconocimiento ?, reducir la distancia entre los colores para aplanar areas y de esta forma ahcerlas mas facil de reconocer :y

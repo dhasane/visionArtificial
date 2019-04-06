@@ -41,7 +41,7 @@ int main( int argc, char* argv[] )
   int ksize = parser.get<int>("ksize");
   int scale = parser.get<int>("scale");
   int delta = parser.get<int>("delta");
-*/
+  */
   int ksize = 1;
   int scale = 1;
   int delta = 1;
