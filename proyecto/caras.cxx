@@ -5,15 +5,39 @@
 using namespace cv;
 using namespace std;
 
+// todas las funciones, de ser necesario, convierten la imagen a gris, y al final lo retornan a bgr, para evitar complicaciones 
+// la imagen al ser retornada por una funcion, siempre va a ser bgr 
+
+// umbralizado 
+// back projection
 void backProjection(Mat src, Mat &dst , int bins);
+// otsu solo tomando en cuenta grises
 void otsu(Mat &src, Mat &dst);
+// otsu tomando en cuenta rgb, los colores inferiores al umbral los binarisa, el resto quedan intactos 
+void otsu2(Mat &src, Mat &res);
+// valores superiores al umbral se les da el valor del umbral
+void corteInferiorUmbral(Mat & src, Mat & dst, int umbral);
+
+// suavizado 
+// se hace un suavizado por un kernel de tamaño kernel_size promedio 
 void suavisarPromedio( Mat &img, Mat &dst , int kernel_size);
+// experimento, se ve chevere pero no fue muy util
 void suavisarExp(Mat img, Mat &dst);
 
-void limpiar(Mat &img,Mat &res, int tipoero, int tipodil, int tam);
-void recorrerFondoPlano(Mat &img);
 
+
+// se realiza el gradiente morfologico, primero erocion y luego dilatacion
+void limpiar(Mat &img,Mat &res, int tipoero, int tipodil, int tam);
+// retorna el histograma de la imagen src
 void histograma(Mat src,Mat &histImg);
+// ecualiza el histograma de la imagen src
+void equalize( Mat &src , Mat &dst);
+
+
+// supone agrupar colores en cantidad de cortes
+void agruparColores( Mat &src, Mat &res, int cortes );
+// igual pero con grises
+void agruparGrises( Mat &src, Mat &res, int cortes );
 
 int main( int argc, char* argv[] )
 {
@@ -26,64 +50,65 @@ int main( int argc, char* argv[] )
         cout << "Usage: " << argv[0] << " <Input image>" << endl;
         return -1;
     }
+    agruparColores(src,src,3);
+    //agruparGrises(src,src,4);
+
     Mat hist;
+
+    Mat res = src.clone();
+
     histograma(src,hist);
-
-
-    Mat forma = src.clone();
-
+    
+    //otsu( src, src );
+    
+    /*
     //suavisarPromedio( forma, forma , 9 );
     
     //suavisarExp(forma, forma);
+    //backProjection  ( src, src , 70);
+
+    //otsu2( src, src );
+    //corteInferiorUmbral(src,src,180);
+
+    //
     //GaussianBlur( forma, forma, Size( 7, 7), 0, 0 );//applying Gaussian filter 
 
     //*
-    backProjection  ( forma, forma , 70);
+    
     //limpiar(forma, forma, 0, 0, 1);
     suavisarExp(forma, forma);
-    otsu( forma, forma );
-    Mat res = src + forma ;
-
-    backProjection  ( res,res , 70);
-    res = src - res;
-
-    //recorrerFondoPlano(forma);
     
+    backProjection  ( res,res , 70);
+    
+    //*/
     // -----------------------------------------
 
-    string metodo;
-    std::stringstream ss( argv[ 1 ] );
+    res -= src ;
+
+    std::stringstream ss( argv[ 1] );
     std::string basename;
     getline( ss, basename, '.' );
 
     
     imwrite(basename+"proyectohistograma.jpg", hist );
 
-    imwrite(basename+"proyecto.jpg", res );    
-    imwrite(basename+"proyectoForma.jpg", forma );
+    imwrite(basename+"proyecto.jpg", src );    
+    //imwrite(basename+"proyectoForma.jpg", src );
 
     return 0;
 }
-void pruebaAgruparColores()
-{
-    int ncolores = 7 ; 
-    int pasoColor = 255 / ncolores;
 
-    /*Vec3b* colores = new Vec3b[ncolores];
-    for( int a = 0 ; a < ncolores ; a ++ )
-    {
-        colores[a] =
-    }
-    */
-    /*
+void agruparColores( Mat &src, Mat &res, int cortes )
+{
+    res = src.clone();
     // vectores de aparicion de intensidades 
     int verde[256] = {0};
     int rojo [256] = {0};
     int azul [256] = {0};
     
     MatIterator_< Vec3b > it, end;
-    it  = src.begin< Vec3b >( );
-    end = src.end< Vec3b >( );
+    it  = res.begin< Vec3b >( );
+    end = res.end< Vec3b >( );
 
     for(  ; it != end; ++it) // contar aparicion de cada tonalidad
     {
@@ -91,8 +116,217 @@ void pruebaAgruparColores()
         verde[(*it)[1]] += 1;
         rojo [(*it)[2]] += 1;
     }
+
+    int tam = int(256/cortes);
+    int salto = int (256/ cortes );
+
+    float* corteAzul  = new float[salto];
+    float* corteRojo  = new float[salto];
+    float* corteVerde = new float[salto];
+
+    int* totalAzul  = new int[salto];
+    int* totalRojo  = new int[salto];
+    int* totalVerde = new int[salto];
+
+    for(int a = 0 ; a < cortes ; a ++)
+    {
+        corteAzul [a] = 0;
+        corteRojo [a] = 0;
+        corteVerde[a] = 0;
+
+        totalAzul [a] = 0;
+        totalRojo [a] = 0;
+        totalVerde[a] = 0;
+    }
+
+    
+    cout<<"salto : "<<salto<<endl;
+    
+    //*
+    for( int a = 0 ; a < cortes; a++)
+    {
+        //cout<<salto*a<<"   "<<salto*(a+1)<<"     ---------------------"<<endl;
+        for (int b = salto*a ; b < salto*(a+1) && b < 256; b++)
+        {
+            //cout<<b<<"/"<<salto<<"   : "<<b/salto<<endl;
+
+            
+            totalAzul[a]  += azul [b];
+            totalRojo[a]  += rojo [b];
+            totalVerde[a] += verde[b]; 
+
+            corteAzul [a] += b * azul [b];
+            corteRojo [a] += b * rojo [b];
+            corteVerde[a] += b * verde[b];
+
+        }
+    }
+
+    for( int a = 0 ; a < cortes; a++)
+    {
+        corteAzul [a] /= totalAzul [a];
+        corteRojo [a] /= totalRojo [a];
+        corteVerde[a] /= totalVerde[a];
+
+    }
+
     /*/
+    for( int a = 0 ; a < cortes; a++)
+    {
+        for (int b = salto*a ; b < salto*(a+1) && b < 256; b++)
+        {
+            totalAzul[a]  += azul [b];
+            totalRojo[a]  += rojo [b];
+            totalVerde[a] += verde[b]; 
+        }
+    }
+
+    for( int a = 0 ; a < cortes; a++)
+    {
+        for (int b = salto*a ; b < salto*(a+1) && b < 256; b++)
+        {
+            corteAzul [a] += b * azul [b] / totalAzul [a];
+            corteRojo [a] += b * rojo [b] / totalRojo [a];
+            corteVerde[a] += b * verde[b] / totalVerde[a];
+        }
+    }//*/
+
+    cout<<"azul  : ";
+    for(int a = 0 ; a < cortes ; a ++)
+    {
+        cout<<corteAzul[a]<<" | ";
+    }
+    cout<<endl<<"rojo  : ";
+    for(int a = 0 ; a < cortes ; a ++)
+    {
+        cout<<corteRojo[a]<<" | ";
+    }
+    cout<<endl<<"verde : ";
+    for(int a = 0 ; a < cortes ; a ++)
+    {
+        cout<<corteVerde[a]<<" | ";
+    }
+    cout<<endl;
+
+
+
+    it  = res.begin< Vec3b >( );
+    end = res.end< Vec3b >( );
+    //int a = 0 ;
+    for(  ; it != end; ++it) // contar aparicion de cada tonalidad
+    {
+        
+        (*it)[0] = corteAzul [ int((*it)[0]/salto) ];
+        (*it)[1] = corteVerde[ int((*it)[1]/salto) ];
+        (*it)[2] = corteRojo [ int((*it)[2]/salto) ];
+    }
+
+    //destroy(corteAzul);
+    //destroy(corteRojo);
+    //destroy(corteVerde);
 }
+
+void agruparGrises( Mat &src, Mat &res, int cortes )
+{
+    
+    cvtColor( src, res, COLOR_BGR2GRAY );
+    // vectores de aparicion de intensidades 
+    int azul [256] = {0};
+    
+    MatIterator_< Vec3b > it, end;
+    it  = res.begin< Vec3b >( );
+    end = res.end< Vec3b >( );
+
+    for(  ; it != end; ++it) // contar aparicion de cada tonalidad
+    {
+        azul [(*it)[0]] += 1;
+    }
+
+    int tam = int(256/cortes);
+    int salto = int (256/ cortes );
+
+    float* corteAzul  = new float[salto];
+
+    int* totalAzul  = new int[salto];
+
+    for(int a = 0 ; a < cortes ; a ++)
+    {
+        corteAzul [a] = 0;
+
+        totalAzul [a] = 0;
+    }
+
+    
+    cout<<"salto : "<<salto<<endl;
+
+    for( int a = 0 ; a < cortes; a++)
+    {
+        for (int b = salto*a ; b < salto*(a+1) && b < 256; b++)
+        {
+            totalAzul[a]  += azul [b];
+
+            corteAzul [a] += b * azul [b];
+
+        }
+    }
+
+    for( int a = 0 ; a < cortes; a++)
+    {
+        corteAzul [a] /= totalAzul [a];
+
+    }
+
+    cout<<"azul  : ";
+    for(int a = 0 ; a < cortes ; a ++)
+    {
+        cout<<corteAzul[a]<<" | ";
+    }
+    cout<<endl;
+
+
+
+    it  = res.begin< Vec3b >( );
+    end = res.end< Vec3b >( );
+    //int a = 0 ;
+    for(  ; it != end; ++it) // contar aparicion de cada tonalidad
+    {
+        
+        (*it)[0] = corteAzul [ int((*it)[0]/salto) ];
+    }
+
+
+    cvtColor( res, res, COLOR_GRAY2BGR);
+    //destroy(corteAzul);
+    //destroy(corteRojo);
+    //destroy(corteVerde);
+}
+
+void corteInferiorUmbral(Mat & src, Mat & dst, int umbral)
+{
+    
+    MatIterator_< Vec3b > it, end;
+    it  = src.begin< Vec3b >( );
+    end = src.end< Vec3b >( );
+
+    for(  ; it != end; ++it) // contar aparicion de cada tonalidad
+    {
+        if( (*it)[0] > umbral ){ (*it)[0] = umbral; }
+        if( (*it)[1] > umbral ){ (*it)[1] = umbral; }
+        if( (*it)[2] > umbral ){ (*it)[2] = umbral; }
+    }
+}
+
+void equalize( Mat &src , Mat &dst)
+{
+  /// Convert to grayscale
+  cvtColor( src, dst, COLOR_BGR2GRAY );
+
+  /// Apply Histogram Equalization
+  equalizeHist( dst, dst );
+
+  cvtColor( dst, dst, COLOR_GRAY2BGR);
+}
+
 void histograma(Mat src,Mat &histImg)
 {
     int bins = 255;
@@ -117,33 +351,6 @@ void histograma(Mat src,Mat &histImg)
     {
         rectangle( histImg, Point( i*bin_w, h ), Point( (i+1)*bin_w, h - cvRound( hist.at<float>(i)*h/255.0 ) ),
                    Scalar( 0, 0, 255 ), FILLED );
-    }
-}
-
-void recorrerFondoPlano(Mat &img)
-{
-    MatIterator_< Vec3b > it, end;
-    it  = img.begin< Vec3b >( );
-    end = img.end  < Vec3b >( );
-
-    bool ini = false ; 
-
-    int val = 0 ;
-
-    for(  ; it != end; ++it) // contar aparicion de cada tonalidad
-    {
-        if (!ini)
-        {
-            val = (*it)[0] + (*it)[1] + (*it)[2];
-            ini = true;
-        }
-
-        if ( abs(val - ( (*it)[0] + (*it)[1] + (*it)[2])  ) < 10 )
-        {
-            (*it)[0] = 0;
-            (*it)[1] = 0;
-            (*it)[2] = 0;
-        }
     }
 }
 
@@ -358,4 +565,48 @@ void otsu(Mat &src, Mat &dst)
     }
 
     cvtColor( dst, dst, COLOR_GRAY2RGB);
+}
+
+void otsu2(Mat &src, Mat &res)
+{
+    res = src.clone();
+    // vectores de aparicion de intensidades 
+    int verde[256] = {0};
+    int rojo [256] = {0};
+    int azul [256] = {0};
+    
+    MatIterator_< Vec3b > it, end;
+    it  = res.begin< Vec3b >( );
+    end = res.end< Vec3b >( );
+
+    for(  ; it != end; ++it) // contar aparicion de cada tonalidad
+    {
+        azul [(*it)[0]] += 1;
+        verde[(*it)[1]] += 1;
+        rojo [(*it)[2]] += 1;
+    }
+
+    float umbAzul  = encontrarUmbral(azul);
+
+    float umbVerde = encontrarUmbral(verde);
+
+    float umbRojo  = encontrarUmbral(rojo);
+
+    // se inicializan los iteradores 
+    it = res.begin< Vec3b >( );
+    end = res.end< Vec3b >( );
+
+    // se recorre la imagen original y en caso de una intensidad ser menor al umbral especifico, se guarda 0, de lo contrario 255 
+    for(  ; it != end; ++it)
+    {
+        if ( (*it)[0] > umbAzul  ) { /*(*az)[0] = 255; (*it)[0] = 255 ;*/ } // azul
+        else                       { (*it)[0] = 0   ; }
+
+        if ( (*it)[1] > umbRojo  ) { /*(*ve)[1] = 255; (*it)[0] = 255 ;*/ } // verde 
+        else                       { (*it)[0] = 0   ; }
+
+        if ( (*it)[2] > umbVerde ) { /*(*ro)[2] = 255; (*it)[0] = 255 ;*/ } // rojo 
+        else                       { (*it)[0] = 0   ; }
+    }
+
 }
