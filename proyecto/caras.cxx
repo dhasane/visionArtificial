@@ -50,6 +50,8 @@ int main( int argc, char* argv[] )
         cout << "Usage: " << argv[0] << " <Input image>" << endl;
         return -1;
     }
+    
+    corteInferiorUmbral(src,src,240);
     agruparColores(src,src,3);
     //agruparGrises(src,src,4);
 
@@ -57,10 +59,13 @@ int main( int argc, char* argv[] )
 
     Mat res = src.clone();
 
+
+
     histograma(src,hist);
     
-    //otsu( src, src );
+    otsu( src, src );
     
+    //GaussianBlur( src, src, Size( 7, 7), 0, 0 );//applying Gaussian filter 
     /*
     //suavisarPromedio( forma, forma , 9 );
     
@@ -68,10 +73,9 @@ int main( int argc, char* argv[] )
     //backProjection  ( src, src , 70);
 
     //otsu2( src, src );
-    //corteInferiorUmbral(src,src,180);
 
     //
-    //GaussianBlur( forma, forma, Size( 7, 7), 0, 0 );//applying Gaussian filter 
+    //
 
     //*
     
@@ -93,7 +97,7 @@ int main( int argc, char* argv[] )
     imwrite(basename+"proyectohistograma.jpg", hist );
 
     imwrite(basename+"proyecto.jpg", src );    
-    //imwrite(basename+"proyectoForma.jpg", src );
+    imwrite(basename+"proyectoForma.jpg", res );
 
     return 0;
 }
