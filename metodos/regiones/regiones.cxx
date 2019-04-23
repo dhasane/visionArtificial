@@ -19,14 +19,15 @@ using namespace cv;
 
 using namespace std;
 
-class Fuentes{
+class Punto{
 
     public:
 
         int x;
         int y;
+        Vec3b color;
 
-        Fuentes(int x, int y )
+        Punto(int x, int y )
         {
             this->x = x;
             this->y = y;
@@ -41,9 +42,62 @@ class Fuentes{
         
 };
 
-list<Fuentes> intensidadColores( Mat &res );
+class Recorrido{
 
-void imprimirLista(list<Fuentes> fuentes)
+    private:
+    int ** mat;
+    int tamx;
+    int tamy;
+
+    public:
+        Recorrido(int tamx, int tamy)
+        {
+            this->tamx = tamx;
+            this->tamy = tamy;
+
+            mat = new int*[tamy];
+            for(int a = 0; a < tamy ; a++)
+            {
+                mat[a] = new int[tamx];
+                for (int b = 0; b < tamx ; b++)
+                {
+                    mat[a][b] = 0;
+                }
+            }
+
+        }
+
+        void visto(int x, int y)
+        {
+            mat[y][x] = 1;
+        }
+
+        void imprimir()
+        {
+           for(int a = 0; a < this->tamy ; a++)
+            {
+                for (int b = 0; b < this->tamx ; b++)
+                {
+                    std::cout<<mat[a][b]<<" ";
+                }
+                std::cout<<std::endl;
+            } 
+        }
+};
+
+class Area{
+    list<Punto> area;
+
+    Area()
+    {
+        //area = new list<Punto>();
+    }
+};
+
+void regiones(Mat &src, Mat &res, list<Punto> fuentes);
+list<Punto> intensidadColores( Mat &res );
+
+void imprimirLista(list<Punto> fuentes)
 {
     for (auto it = fuentes.begin(); it != fuentes.end(); ++it)
       it->imprimir();
@@ -74,20 +128,40 @@ int main ( int argc, char** argv )
     getline( ss, basename, '.' );
 
 
-    list<Fuentes> fuentes = intensidadColores ( src );
+    list<Punto> fuentes = intensidadColores ( src );
 
     cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl;
 
     imprimirLista( fuentes);
-    
-    //imwrite( basename + metodo + ".jpg" , prueba(src) );
+    Mat dest;
+    regiones(src,dest,fuentes);
+
+
+    //imwrite( basename + + ".jpg" , prueba(src) );
+    imwrite( "hola.jpg" , dest );
     
     
     return 0;
 }
 
+void regiones(Mat &src, Mat &res, list<Punto> fuentes)
+{
+    Recorrido rec(src.cols,src.rows);
 
-list<Fuentes> intensidadColores( Mat &res )
+    res = src.clone();
+    Vec3b col = (0,0,0);
+    for (auto it = fuentes.begin(); it != fuentes.end(); ++it)
+    {
+        res.at<Vec3b>(Point(it->x, it->y)) = col;
+        rec.visto(it->x, it->y);
+    }
+      
+    
+    rec.imprimir();
+}
+
+
+list<Punto> intensidadColores( Mat &res )
 {
     
     MatIterator_< Vec3b > it, end;
@@ -114,7 +188,7 @@ list<Fuentes> intensidadColores( Mat &res )
         }
     }
 
-    list<Fuentes> fuentes;
+    list<Punto> fuentes;
 
     it  = res.begin< Vec3b >( );
     end = res.end< Vec3b >( );
@@ -123,7 +197,7 @@ list<Fuentes> intensidadColores( Mat &res )
     {
         if ( (*it)[0] == maxAzul || (*it)[1] == maxVerde || (*it)[2] == maxRojo)
         {
-            fuentes.insert(fuentes.end(), Fuentes( pos % res.cols ,pos / res.cols) );
+            fuentes.insert(fuentes.end(), Punto( pos % res.cols ,pos / res.cols) );
         }
         pos++;
     }
