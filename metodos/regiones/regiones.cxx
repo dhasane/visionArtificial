@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <vector>
+#include <deque>
 #include <stdio.h>
 
 #include "opencv2/imgproc.hpp"
@@ -78,10 +79,11 @@ class Recorrido{
         // en caso de ya haber sido visto, vist = true, no visto = false
         bool visto(int x, int y)
         {
+            //*
             if ( mat[y][x] != 0 )
             {
                 return true;
-            }
+            }//*/
             return false;
         }
 
@@ -111,7 +113,7 @@ class Recorrido{
 class Area{
 
     vector<Punto> *puntos;  // puntos del area
-    vector<Punto> *posibles;// posibles puntos del area :D
+    deque<Punto> *posibles;// posibles puntos del area :D
 
 
     float total0;
@@ -127,7 +129,7 @@ class Area{
         Area( Punto p )
         {
             puntos = new vector<Punto>();
-            posibles = new vector<Punto>();
+            posibles = new deque<Punto>();
             puntos->push_back(p);
             total0 = p.color[0];
             total1 = p.color[1]; // full lazy 
@@ -145,19 +147,22 @@ class Area{
             return posibles->size();
         }
 
-        vector<Punto>* darPosibles()
+        Punto posiblesTop()
         {
-            return posibles;
+            Punto pp = posibles->front();
+            posibles->pop_front();
+            return pp;
         }
 
-        void agregarPosibles(vector<Punto> posibles)
+        // une el vector posib al vector posibles
+        void agregarPosibles( vector<Punto> posib )
         {
-
+            this->posibles->insert(posibles->end(), posib.begin() , posib.end() );
         }
 
         bool insertar(Punto p, int cercania )
         {   
-            cout<<size()<<endl;
+            //cout<<size()<<endl;
 
             float vinf = total0/cant - cercania;
             float vsup = total0/cant + cercania;
@@ -310,7 +315,9 @@ int main ( int argc, char** argv )
 
     cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl<< "total pixeles : "<<src.cols * src.rows<<endl;
 
-    regiones( dest, dest, true, 100, fuentes);
+    cout<<"fuentes : "<<fuentes.size()<<endl;
+
+    regiones( dest, dest, true, 50, fuentes);
 
 
     //imwrite( basename + + ".jpg" , prueba(src) );
@@ -360,36 +367,29 @@ bool adyacentes(vector<Punto> &puntos, Mat &img, int x , int y, bool esquinas , 
     return cambio;
 }
 
-// consigue un area, segun un punto inicial 
+// consigue un area, segun un punto inicial de forma continua, para evitar los limites de la recursion
 void conseguirArea(Area &area, Mat &img, bool esquinas,int distancia, Recorrido rec)
 {
-    bool cambios = true;
     vector<Punto> *nuevos;
 
-    vector<Punto> * posibles = area.darPosibles();
-    while( area.sizePosibles( ) > 0  || cambios )
+    // los adyacentes del primer punto 
+    nuevos = new vector<Punto>();
+    adyacentes(*nuevos, img, area.top().x, area.top().y,esquinas, rec);
+    area.agregarPosibles(*nuevos);  
+
+    while( area.sizePosibles( ) > 0 )
     {
-        // falta revisar todos los posibles, porque por ahora solo se revisa el primer valor encontrado :v 
-        cambios = false;
-        nuevos = new vector<Punto>();
-        adyacentes(*nuevos, img, area.top().x, area.top().y,esquinas, rec); 
-
-        area.agregarPosibles(*nuevos); // y tambien falta poner bien esta funcion 
-
-        for (auto itt = nuevos->begin(); itt != nuevos->end(); ++itt)
+        if( area.insertar( area.posiblesTop() , distancia ) )
         {
-            if( !area.insertar( *itt, distancia ) )
-            {
-                rec.noVer(itt->x,itt->y);
-            }
-            else
-            {
-                cambios = true;
-            }
-            
+            nuevos = new vector<Punto>(); 
+            adyacentes(*nuevos, img, area.top().x, area.top().y,esquinas, rec);
+            area.agregarPosibles(*nuevos);
         }
-    }
-    
+        else
+        {
+            rec.noVer(area.top().x, area.top().y);
+        }
+    }    
 }
 
 /*
@@ -448,14 +448,10 @@ void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fu
         conseguirArea(*area, src, esquinas,distancia, rec);
         
         conj->agregar(*area);
-
-        cout<<area->size()<<endl;;
-        //break;
     }
 
     cout<<endl<<conj->size()<<endl;
-    
-    //rec.imprimir();
+
 
     conj->conjuntoAImagen(res);
 
@@ -474,6 +470,10 @@ vector<Punto> intensidadColores( Mat &res )
     int maxVerde= 0;
     int maxRojo = 0;
 
+    int minAzul = 255;
+    int minVerde= 255;
+    int minRojo = 255;
+
     for(  ; it != end; ++it) // contar aparicion de cada tonalidad
     {
         if ( (*it)[0] > maxAzul)// azul
@@ -488,6 +488,19 @@ vector<Punto> intensidadColores( Mat &res )
         {
             maxRojo  = (*it)[2];
         }
+
+        if ( (*it)[0] < minAzul)// azul
+        {
+            minAzul  = (*it)[0];
+        }
+        if ( (*it)[1] < minVerde)// verde
+        {
+            minVerde = (*it)[1];
+        }
+        if ( (*it)[2] < minRojo)// rojo
+        {
+            minRojo  = (*it)[2];
+        }
     }
 
     vector<Punto> fuentes;
@@ -495,9 +508,13 @@ vector<Punto> intensidadColores( Mat &res )
     it  = res.begin< Vec3b >( );
     end = res.end< Vec3b >( );
     int pos = 0;
+    bool max;
+    bool min;
     for(  ; it != end; ++it) // contar aparicion de cada tonalidad
     {
-        if ( (*it)[0] == maxAzul || (*it)[1] == maxVerde || (*it)[2] == maxRojo)
+        max = (*it)[0] == maxAzul || (*it)[1] == maxVerde || (*it)[2] == maxRojo;
+        min = (*it)[0] == minAzul || (*it)[1] == minVerde || (*it)[2] == minRojo;
+        if ( max || min )
         {
             fuentes.push_back( Punto( pos % res.cols ,pos / res.cols, *it) );
         }
