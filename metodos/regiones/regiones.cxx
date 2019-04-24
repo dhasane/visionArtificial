@@ -30,21 +30,21 @@ class Punto{
         {
             std::cout<<"("<<x<<","<<y<<")"<<endl;
         }
-        
+
     private:
-        
+
 };
 
 class Recorrido{
 
     private:
-    int ** mat;     // matriz 
+    int ** mat;     // matriz
     int tamx;       // tam en x
     int tamy;       // tam en y
     int noVistos;   // cantidad de pixeles no vistos
 
     public:
-        // crea una matriz para verificar los pixeles ya vistos 
+        // crea una matriz para verificar los pixeles ya vistos
         Recorrido(int tamx, int tamy)
         {
             this->tamx = tamx;
@@ -62,7 +62,7 @@ class Recorrido{
             noVistos = tamx * tamy;
         }
 
-        // convierte el pixel en la posicion (x,y) en visto 
+        // convierte el pixel en la posicion (x,y) en visto
         void verPos(int x, int y)
         {
             mat[y][x] = 1;
@@ -87,7 +87,7 @@ class Recorrido{
             return false;
         }
 
-        // imprime :v 
+        // imprime :v
         void imprimir()
         {
            for(int a = 0; a < this->tamy ; a++)
@@ -97,7 +97,7 @@ class Recorrido{
                     std::cout<<mat[a][b]<<" ";
                 }
                 std::cout<<std::endl;
-            } 
+            }
         }
 
         bool interno(int x, int y)
@@ -115,24 +115,20 @@ class Area{
     vector<Punto> *puntos;  // puntos del area
     deque<Punto> *posibles;// posibles puntos del area :D
 
-
     float total0;
     float total1; // para cada uno de los canales
     float total2;
 
     int cant;
-
-    
-
     public:
-        
+
         Area( Punto p )
         {
             puntos = new vector<Punto>();
             posibles = new deque<Punto>();
             puntos->push_back(p);
             total0 = p.color[0];
-            total1 = p.color[1]; // full lazy 
+            total1 = p.color[1]; // full lazy
             total2 = p.color[2];
             cant = 1;
         }
@@ -161,14 +157,14 @@ class Area{
         }
 
         bool insertar(Punto p, int cercania )
-        {   
+        {
             //cout<<size()<<endl;
 
             float vinf = total0/cant - cercania;
             float vsup = total0/cant + cercania;
             if (vinf < 0)   vinf = 0;
             if (255 < vsup) vsup = 255;
-            
+
             bool bo0 = vinf < p.color[0] && p.color[0] < vsup;
 
             vinf = total1/cant - cercania;
@@ -185,10 +181,17 @@ class Area{
 
             bool bo2 = vinf < p.color[2] && p.color[2] < vsup;
 
-            if ( bo0 && bo1 && bo1 )
+            vinf = (total0+total1+total2)/3 - cercania;
+            vsup = (total0+total1+total2)/3 + cercania;
+            if (vinf < 0)   vinf = 0;
+            if (255 < vsup) vsup = 255;
+            bool bo3 = vinf < ((p.color[0]+p.color[1]+p.color[2])/3) && ((p.color[0]+p.color[1]+p.color[2])/3) < vsup;
+
+
+            if ( bo0 && bo1 && bo2)
             {
                 puntos->push_back( p );
-                
+
                 // medir promedios
                 this->total0 += p.color[0];
                 this->total1 += p.color[1];
@@ -270,18 +273,18 @@ class Conjunto{
         {
             struct {
                 bool operator()(Area a , Area b) const
-                {   
+                {
                     return a.colorPromedio() < b.colorPromedio();
-                }   
+                }
             } customLess;
             std::sort(areas->begin(), areas->end(), customLess);
-            //std::sort(areas->begin(), areas->end()); // sort simple 
+            //std::sort(areas->begin(), areas->end()); // sort simple
         }//*/
 };
 
 void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fuentes);
 vector<Punto> intensidadColores( Mat &res );
-
+vector<Punto> semillasManual(Mat &res);
 void imprimirListaPuntos(vector<Punto> fuentes);
 
 vector<Punto> todos( Mat &res );
@@ -297,13 +300,13 @@ int main ( int argc, char** argv )
     const char* imageName = argv[1];
 
     // Loads an image
-    src = imread( imageName, IMREAD_COLOR ); 
+    src = imread( imageName, IMREAD_COLOR );
     if( src.empty() )
     {
         printf(" Error opening image\n");
         return -1;
     }
-    
+
     string metodo;
     std::stringstream ss( argv[ 1 ] );
     std::string basename;
@@ -314,30 +317,31 @@ int main ( int argc, char** argv )
     //cvtColor( src, dest, COLOR_BGR2GRAY );
 
     //vector<Punto> fuentes = intensidadColores ( dest );
-    vector<Punto> fuentes = todos ( dest );
+    vector<Punto> fuentes;
+    fuentes = todos ( dest );
 
+    fuentes = semillasManual(dest);
     cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl<< "total pixeles : "<<src.cols * src.rows<<endl;
-
     cout<<"fuentes : "<<fuentes.size()<<endl;
 
-    regiones( dest, dest, true, 50, fuentes);
+    regiones( dest, dest, true, 100, fuentes);
 
 
     //imwrite( basename + + ".jpg" , prueba(src) );
     imwrite( "hola.jpg" , dest );
-    
-    
+
+
     return 0;
 }
 
-// imprime una lista de puntos 
+// imprime una lista de puntos
 void imprimirListaPuntos(vector<Punto> fuentes)
 {
     for (auto it = fuentes.begin(); it != fuentes.end(); ++it)
       it->imprimir();
 }
 
-// verifica si un punto es viable 
+// verifica si un punto es viable
 bool mirarPunto(vector<Punto> &puntos, Mat &img, int x, int y, Recorrido rec)
 {
     if( rec.interno(x,y) && !rec.visto(x,y) )
@@ -375,17 +379,17 @@ void conseguirArea(Area &area, Mat &img, bool esquinas,int distancia, Recorrido 
 {
     vector<Punto> *nuevos;
 
-    // los adyacentes del primer punto 
+    // los adyacentes del primer punto
     nuevos = new vector<Punto>();
     adyacentes(*nuevos, img, area.top().x, area.top().y,esquinas, rec);
-    area.agregarPosibles(*nuevos);  
+    area.agregarPosibles(*nuevos);
 
     while( area.sizePosibles( ) > 0 )
     {
         if( area.insertar( area.posiblesTop() , distancia ) )
         {
             rec.verPos(area.top().x, area.top().y);
-            nuevos = new vector<Punto>(); 
+            nuevos = new vector<Punto>();
             adyacentes(*nuevos, img, area.top().x, area.top().y,esquinas, rec);
             area.agregarPosibles(*nuevos);
         }
@@ -393,16 +397,16 @@ void conseguirArea(Area &area, Mat &img, bool esquinas,int distancia, Recorrido 
         {
             rec.noVer(area.top().x, area.top().y);
         }
-    }    
+    }
 }
 
-// consigue n regiones y afecta la imagen para representarlas 
+// consigue n regiones y afecta la imagen para representarlas
 void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fuentes)
 {
     Recorrido rec(src.cols,src.rows);
 
     Conjunto *conj = new Conjunto();
-    
+
 
     res = src.clone();
     Vec3b col = (0,0,0);
@@ -411,12 +415,12 @@ void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fu
     for (auto it = fuentes.begin(); it != fuentes.end(); ++it)
     {
         // se hace de esta forma, en caso de que dos semillas se sobrelapen, haciendo que solo la primera semilla gane
-        if ( !rec.visto(it->x, it->y) ) 
+        if ( !rec.visto(it->x, it->y) )
         {
             rec.verPos(it->x, it->y);
-            area = new Area( *it ); // primer punto 
+            area = new Area( *it ); // primer punto
             conseguirArea(*area, src, esquinas,distancia, rec);
-            
+
             conj->agregar(*area);
         }
     }
@@ -425,11 +429,10 @@ void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fu
     conj->conjuntoAImagen(res);
 }
 
-
-// metodos para conseguir fuentes 
+// metodos para conseguir fuentes
 vector<Punto> intensidadColores( Mat &res )
 {
-    
+
     MatIterator_< Vec3b > it, end;
     it  = res.begin< Vec3b >( );
     end = res.end< Vec3b >( );
@@ -511,5 +514,26 @@ vector<Punto> todos( Mat &res )
         pos++;
     }
 
-    return fuentes;    
+    return fuentes;
+}
+
+vector<Punto> semillasManual(Mat &res)
+{
+  vector<Punto> semillas;
+  int cantidadSemillas=0, x=0, y=0;
+  cout<<"Cantidad semillas"<<endl;
+  cin>>cantidadSemillas;
+  for(int i=0; i<cantidadSemillas; i++){
+      x=0;
+      y=0;
+      cout<<"Semilla "<<i+1<<endl;
+      cout<<"Ingrese coordenada en x"<<endl;
+      cin>>x;
+      cout<<"Ingrese coordenada en y"<<endl;
+      cin>>y;
+      Punto semilla = Punto(x,y, res.at<Vec3b>(x, y));
+      cout<<"crea semilla"<<endl;
+      semillas.push_back(semilla);
+  }
+  return semillas;
 }
