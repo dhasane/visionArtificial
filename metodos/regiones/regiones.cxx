@@ -188,7 +188,7 @@ class Area{
             bool bo3 = vinf < ((p.color[0]+p.color[1]+p.color[2])/3) && ((p.color[0]+p.color[1]+p.color[2])/3) < vsup;
 
 
-            if ( bo0 && bo1 && bo2)
+            if ( bo0 && bo1 && bo2 || bo3)
             {
                 puntos->push_back( p );
 
