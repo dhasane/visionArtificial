@@ -284,6 +284,8 @@ vector<Punto> intensidadColores( Mat &res );
 
 void imprimirListaPuntos(vector<Punto> fuentes);
 
+vector<Punto> todos( Mat &res );
+
 int main ( int argc, char** argv )
 {
     if( argc < 2 )
@@ -311,7 +313,8 @@ int main ( int argc, char** argv )
 
     //cvtColor( src, dest, COLOR_BGR2GRAY );
 
-    vector<Punto> fuentes = intensidadColores ( dest );
+    //vector<Punto> fuentes = intensidadColores ( dest );
+    vector<Punto> fuentes = todos ( dest );
 
     cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl<< "total pixeles : "<<src.cols * src.rows<<endl;
 
@@ -339,8 +342,8 @@ bool mirarPunto(vector<Punto> &puntos, Mat &img, int x, int y, Recorrido rec)
 {
     if( rec.interno(x,y) && !rec.visto(x,y) )
     {
+        rec.verPos( x, y );
         puntos.push_back( Punto( x , y , img.at<Vec3b>( Point(x, y) ) ) );
-        rec.verPos(x,y);
         return true;
     }
     return false;
@@ -381,6 +384,7 @@ void conseguirArea(Area &area, Mat &img, bool esquinas,int distancia, Recorrido 
     {
         if( area.insertar( area.posiblesTop() , distancia ) )
         {
+            rec.verPos(area.top().x, area.top().y);
             nuevos = new vector<Punto>(); 
             adyacentes(*nuevos, img, area.top().x, area.top().y,esquinas, rec);
             area.agregarPosibles(*nuevos);
@@ -392,40 +396,6 @@ void conseguirArea(Area &area, Mat &img, bool esquinas,int distancia, Recorrido 
     }    
 }
 
-/*
-// consigue un area, segun un punto inicial recursivamente, se vuelve muy pesado rapido ...
-void conseguirArea(Area &area, Mat &img, bool esquinas,int distancia, Recorrido rec)
-{
-    bool cambios;
-
-    vector<Punto> *nuevos = new vector<Punto>();
-    
-    Punto pt = area.top();
-
-    //pt.imprimir();
-
-    cambios = adyacentes(*nuevos, img, pt.x, pt.y,esquinas, rec); // se le consiguen los valores cercanos
-    
-
-    //imprimirListaPuntos(*nuevos);
-
-    if (cambios) // en caso de haber adiciones, se revisa cada uno de los nuevos puntos 
-    {
-        for (auto itt = nuevos->begin(); itt != nuevos->end(); ++itt)
-        {
-            if( area.insertar( *itt, distancia ) )
-            {
-                conseguirArea(area, img, esquinas,distancia, rec);
-            }
-            else
-            {
-                rec.noVer(itt->x,itt->y);
-            }
-        }
-    }
-}
-*/
-
 // consigue n regiones y afecta la imagen para representarlas 
 void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fuentes)
 {
@@ -436,25 +406,23 @@ void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fu
 
     res = src.clone();
     Vec3b col = (0,0,0);
-    for (auto it = fuentes.begin(); it != fuentes.end(); ++it)
-    {
-        rec.verPos(it->x, it->y);
-    }
-    
+
     Area* area;
     for (auto it = fuentes.begin(); it != fuentes.end(); ++it)
     {
-        area = new Area( *it ); // primer punto 
-        conseguirArea(*area, src, esquinas,distancia, rec);
-        
-        conj->agregar(*area);
+        // se hace de esta forma, en caso de que dos semillas se sobrelapen, haciendo que solo la primera semilla gane
+        if ( !rec.visto(it->x, it->y) ) 
+        {
+            rec.verPos(it->x, it->y);
+            area = new Area( *it ); // primer punto 
+            conseguirArea(*area, src, esquinas,distancia, rec);
+            
+            conj->agregar(*area);
+        }
     }
 
     cout<<endl<<conj->size()<<endl;
-
-
     conj->conjuntoAImagen(res);
-
 }
 
 
@@ -526,4 +494,22 @@ vector<Punto> intensidadColores( Mat &res )
     return fuentes;
 
 
+}
+
+
+vector<Punto> todos( Mat &res )
+{
+    MatIterator_< Vec3b > it, end;
+    vector<Punto> fuentes;
+
+    it  = res.begin< Vec3b >( );
+    end = res.end< Vec3b >( );
+    int pos = 0;
+    for(  ; it != end; ++it) // contar aparicion de cada tonalidad
+    {
+        fuentes.push_back( Punto( pos % res.cols ,pos / res.cols, *it) );
+        pos++;
+    }
+
+    return fuentes;    
 }
