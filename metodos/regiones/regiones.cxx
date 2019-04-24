@@ -369,11 +369,12 @@ void conseguirArea(Area &area, Mat &img, bool esquinas,int distancia, Recorrido 
     vector<Punto> * posibles = area.darPosibles();
     while( area.sizePosibles( ) > 0  || cambios )
     {
+        // falta revisar todos los posibles, porque por ahora solo se revisa el primer valor encontrado :v 
         cambios = false;
         nuevos = new vector<Punto>();
         adyacentes(*nuevos, img, area.top().x, area.top().y,esquinas, rec); 
 
-        area.agregarPosibles(*nuevos);
+        area.agregarPosibles(*nuevos); // y tambien falta poner bien esta funcion 
 
         for (auto itt = nuevos->begin(); itt != nuevos->end(); ++itt)
         {
