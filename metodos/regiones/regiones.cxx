@@ -1,19 +1,10 @@
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
-#include <math.h>
-#include <stdlib.h>
+
+#include <iostream>
+#include <vector>
 #include <stdio.h>
 
 #include "opencv2/imgproc.hpp"
-#include "opencv2/imgcodecs.hpp"
 #include "opencv2/highgui.hpp"
-
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <list>
-#include <cstring>
-
 
 using namespace cv;
 
@@ -27,10 +18,11 @@ class Punto{
         int y;
         Vec3b color;
 
-        Punto(int x, int y )
+        Punto(int x, int y ,Vec3b col )
         {
             this->x = x;
             this->y = y;
+            this->color = col;
         }
 
         void imprimir()
@@ -45,11 +37,13 @@ class Punto{
 class Recorrido{
 
     private:
-    int ** mat;
-    int tamx;
-    int tamy;
+    int ** mat;     // matriz 
+    int tamx;       // tam en x
+    int tamy;       // tam en y
+    int noVistos;   // cantidad de pixeles no vistos
 
     public:
+        // crea una matriz para verificar los pixeles ya vistos 
         Recorrido(int tamx, int tamy)
         {
             this->tamx = tamx;
@@ -64,14 +58,34 @@ class Recorrido{
                     mat[a][b] = 0;
                 }
             }
-
+            noVistos = tamx * tamy;
         }
 
-        void visto(int x, int y)
+        // convierte el pixel en la posicion (x,y) en visto 
+        void verPos(int x, int y)
         {
             mat[y][x] = 1;
+            noVistos --;
         }
 
+        // ya no visto
+        void noVer(int x, int y)
+        {
+            mat[y][x] = 0;
+            noVistos ++;
+        }
+
+        // en caso de ya haber sido visto, vist = true, no visto = false
+        bool visto(int x, int y)
+        {
+            if ( mat[y][x] != 0 )
+            {
+                return true;
+            }
+            return false;
+        }
+
+        // imprime :v 
         void imprimir()
         {
            for(int a = 0; a < this->tamy ; a++)
@@ -83,25 +97,187 @@ class Recorrido{
                 std::cout<<std::endl;
             } 
         }
+
+        bool interno(int x, int y)
+        {
+            if (0 < x && x < tamx && 0 < y && y < tamy)
+            {
+                return true;
+            }
+            return false;
+        }
 };
 
 class Area{
-    list<Punto> area;
 
-    Area()
-    {
-        //area = new list<Punto>();
-    }
+    vector<Punto> *puntos;  // puntos del area
+    vector<Punto> *posibles;// posibles puntos del area :D
+
+
+    float total0;
+    float total1; // para cada uno de los canales
+    float total2;
+
+    int cant;
+
+    
+
+    public:
+        
+        Area( Punto p )
+        {
+            puntos = new vector<Punto>();
+            posibles = new vector<Punto>();
+            puntos->push_back(p);
+            total0 = p.color[0];
+            total1 = p.color[1]; // full lazy 
+            total2 = p.color[2];
+            cant = 1;
+        }
+
+        int size()
+        {
+            return puntos->size();
+        }
+
+        int sizePosibles()
+        {
+            return posibles->size();
+        }
+
+        vector<Punto>* darPosibles()
+        {
+            return posibles;
+        }
+
+        void agregarPosibles(vector<Punto> posibles)
+        {
+
+        }
+
+        bool insertar(Punto p, int cercania )
+        {   
+            cout<<size()<<endl;
+
+            float vinf = total0/cant - cercania;
+            float vsup = total0/cant + cercania;
+            if (vinf < 0)   vinf = 0;
+            if (255 < vsup) vsup = 255;
+            
+            bool bo0 = vinf < p.color[0] && p.color[0] < vsup;
+
+            vinf = total1/cant - cercania;
+            vsup = total1/cant + cercania;
+            if (vinf < 0)   vinf = 0;
+            if (255 < vsup) vsup = 255;
+
+            bool bo1 = vinf < p.color[1] && p.color[1] < vsup;
+
+            vinf = total2/cant - cercania;
+            vsup = total2/cant + cercania;
+            if (vinf < 0)   vinf = 0;
+            if (255 < vsup) vsup = 255;
+
+            bool bo2 = vinf < p.color[2] && p.color[2] < vsup;
+
+            if ( bo0 && bo1 && bo1 )
+            {
+                puntos->push_back( p );
+                
+                // medir promedios
+                this->total0 += p.color[0];
+                this->total1 += p.color[1];
+                this->total2 += p.color[2];
+                cant ++;
+                return true;
+            }
+
+            return false;
+        }
+
+        Punto top()
+        {
+            return puntos->back();
+        }
+
+        void imprimir()
+        {
+            std::cout<<size()<<" "<<colorPromedio()<<endl;
+        }
+
+        void imprimirListaPuntos()
+        {
+            for (auto it = puntos->begin(); it != puntos->end(); ++it)
+                it->imprimir();
+        }
+
+        Vec3b colorPromedio()
+        {
+            Vec3b color;
+            color[0] = total0/cant;
+            color[1] = total1/cant;
+            color[2] = total2/cant;
+
+            return color;
+        }
+
+        void areaAImagen(Mat &img)
+        {
+            Vec3b color = colorPromedio();
+
+            for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
+            {
+                img.at<Vec3b>( Point(pt->x, pt->y) ) = color;
+            }
+        }
 };
 
-void regiones(Mat &src, Mat &res, list<Punto> fuentes);
-list<Punto> intensidadColores( Mat &res );
+class Conjunto{
+    vector<Area> *areas;
 
-void imprimirLista(list<Punto> fuentes)
-{
-    for (auto it = fuentes.begin(); it != fuentes.end(); ++it)
-      it->imprimir();
-}
+    public:
+
+        Conjunto()
+        {
+            areas = new vector<Area>();
+        }
+
+        void agregar(Area area)
+        {
+            areas->push_back( area );
+        }
+
+        int size()
+        {
+            return areas->size();
+        }
+
+        void conjuntoAImagen(Mat &img)
+        {
+            for (auto area = areas->begin(); area != areas->end(); ++area)
+            {
+                area->areaAImagen(img);
+            }
+        }
+
+        /*
+        void unir()
+        {
+            struct {
+                bool operator()(Area a , Area b) const
+                {   
+                    return a.colorPromedio() < b.colorPromedio();
+                }   
+            } customLess;
+            std::sort(areas->begin(), areas->end(), customLess);
+            //std::sort(areas->begin(), areas->end()); // sort simple 
+        }//*/
+};
+
+void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fuentes);
+vector<Punto> intensidadColores( Mat &res );
+
+void imprimirListaPuntos(vector<Punto> fuentes);
 
 int main ( int argc, char** argv )
 {
@@ -110,31 +286,31 @@ int main ( int argc, char** argv )
       cout<<" ingresar : "<<argv[0]<<" (nombre imagen)"<<endl;
       return -1;
     }
-    Mat src, dst;
+    Mat src;
     const char* imageName = argv[1];
 
     // Loads an image
-    src = imread( imageName, IMREAD_COLOR ); // Load an image
+    src = imread( imageName, IMREAD_COLOR ); 
     if( src.empty() )
     {
         printf(" Error opening image\n");
         return -1;
     }
     
-    // falta alguna forma de definir el grosor ...
     string metodo;
     std::stringstream ss( argv[ 1 ] );
     std::string basename;
     getline( ss, basename, '.' );
 
+    Mat dest = src.clone();
 
-    list<Punto> fuentes = intensidadColores ( src );
+    //cvtColor( src, dest, COLOR_BGR2GRAY );
 
-    cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl;
+    vector<Punto> fuentes = intensidadColores ( dest );
 
-    imprimirLista( fuentes);
-    Mat dest;
-    regiones(src,dest,fuentes);
+    cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl<< "total pixeles : "<<src.cols * src.rows<<endl;
+
+    regiones( dest, dest, true, 100, fuentes);
 
 
     //imwrite( basename + + ".jpg" , prueba(src) );
@@ -144,24 +320,149 @@ int main ( int argc, char** argv )
     return 0;
 }
 
-void regiones(Mat &src, Mat &res, list<Punto> fuentes)
+// imprime una lista de puntos 
+void imprimirListaPuntos(vector<Punto> fuentes)
+{
+    for (auto it = fuentes.begin(); it != fuentes.end(); ++it)
+      it->imprimir();
+}
+
+// verifica si un punto es viable 
+bool mirarPunto(vector<Punto> &puntos, Mat &img, int x, int y, Recorrido rec)
+{
+    if( rec.interno(x,y) && !rec.visto(x,y) )
+    {
+        puntos.push_back( Punto( x , y , img.at<Vec3b>( Point(x, y) ) ) );
+        rec.verPos(x,y);
+        return true;
+    }
+    return false;
+}
+
+// mira los pixeles adyacentes al que se esta mirando, en caso de que estos sean viables
+bool adyacentes(vector<Punto> &puntos, Mat &img, int x , int y, bool esquinas , Recorrido rec)
+{
+    bool cambio = false;
+
+    cambio |= mirarPunto(puntos, img, x-1, y,rec);
+    cambio |= mirarPunto(puntos, img, x+1, y,rec);
+    cambio |= mirarPunto(puntos, img, x, y-1,rec);
+    cambio |= mirarPunto(puntos, img, x, y+1,rec);
+
+    if(esquinas)
+    {
+        cambio |= mirarPunto(puntos, img, x-1, y-1,rec);
+        cambio |= mirarPunto(puntos, img, x+1, y-1,rec);
+        cambio |= mirarPunto(puntos, img, x-1, y+1,rec);
+        cambio |= mirarPunto(puntos, img, x+1, y+1,rec);
+    }
+
+    return cambio;
+}
+
+// consigue un area, segun un punto inicial 
+void conseguirArea(Area &area, Mat &img, bool esquinas,int distancia, Recorrido rec)
+{
+    bool cambios = true;
+    vector<Punto> *nuevos;
+
+    vector<Punto> * posibles = area.darPosibles();
+    while( area.sizePosibles( ) > 0  || cambios )
+    {
+        cambios = false;
+        nuevos = new vector<Punto>();
+        adyacentes(*nuevos, img, area.top().x, area.top().y,esquinas, rec); 
+
+        area.agregarPosibles(*nuevos);
+
+        for (auto itt = nuevos->begin(); itt != nuevos->end(); ++itt)
+        {
+            if( !area.insertar( *itt, distancia ) )
+            {
+                rec.noVer(itt->x,itt->y);
+            }
+            else
+            {
+                cambios = true;
+            }
+            
+        }
+    }
+    
+}
+
+/*
+// consigue un area, segun un punto inicial recursivamente, se vuelve muy pesado rapido ...
+void conseguirArea(Area &area, Mat &img, bool esquinas,int distancia, Recorrido rec)
+{
+    bool cambios;
+
+    vector<Punto> *nuevos = new vector<Punto>();
+    
+    Punto pt = area.top();
+
+    //pt.imprimir();
+
+    cambios = adyacentes(*nuevos, img, pt.x, pt.y,esquinas, rec); // se le consiguen los valores cercanos
+    
+
+    //imprimirListaPuntos(*nuevos);
+
+    if (cambios) // en caso de haber adiciones, se revisa cada uno de los nuevos puntos 
+    {
+        for (auto itt = nuevos->begin(); itt != nuevos->end(); ++itt)
+        {
+            if( area.insertar( *itt, distancia ) )
+            {
+                conseguirArea(area, img, esquinas,distancia, rec);
+            }
+            else
+            {
+                rec.noVer(itt->x,itt->y);
+            }
+        }
+    }
+}
+*/
+
+// consigue n regiones y afecta la imagen para representarlas 
+void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fuentes)
 {
     Recorrido rec(src.cols,src.rows);
+
+    Conjunto *conj = new Conjunto();
+    
 
     res = src.clone();
     Vec3b col = (0,0,0);
     for (auto it = fuentes.begin(); it != fuentes.end(); ++it)
     {
-        res.at<Vec3b>(Point(it->x, it->y)) = col;
-        rec.visto(it->x, it->y);
+        rec.verPos(it->x, it->y);
     }
-      
     
-    rec.imprimir();
+    Area* area;
+    for (auto it = fuentes.begin(); it != fuentes.end(); ++it)
+    {
+        area = new Area( *it ); // primer punto 
+        conseguirArea(*area, src, esquinas,distancia, rec);
+        
+        conj->agregar(*area);
+
+        cout<<area->size()<<endl;;
+        //break;
+    }
+
+    cout<<endl<<conj->size()<<endl;
+    
+    //rec.imprimir();
+
+    conj->conjuntoAImagen(res);
+
 }
 
 
-list<Punto> intensidadColores( Mat &res )
+// metodos para conseguir fuentes 
+vector<Punto> intensidadColores( Mat &res )
 {
     
     MatIterator_< Vec3b > it, end;
@@ -188,7 +489,7 @@ list<Punto> intensidadColores( Mat &res )
         }
     }
 
-    list<Punto> fuentes;
+    vector<Punto> fuentes;
 
     it  = res.begin< Vec3b >( );
     end = res.end< Vec3b >( );
@@ -197,7 +498,7 @@ list<Punto> intensidadColores( Mat &res )
     {
         if ( (*it)[0] == maxAzul || (*it)[1] == maxVerde || (*it)[2] == maxRojo)
         {
-            fuentes.insert(fuentes.end(), Punto( pos % res.cols ,pos / res.cols) );
+            fuentes.push_back( Punto( pos % res.cols ,pos / res.cols, *it) );
         }
         pos++;
     }
