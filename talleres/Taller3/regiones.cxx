@@ -189,7 +189,7 @@ class Area{
 
             bool bo2 = vinf < p.color[2] && p.color[2] < vsup;
 
-            
+
             if ( bo0 && bo1 && bo2)
             {
                 puntos->push_back( p );
@@ -295,15 +295,22 @@ void binarizar(Mat &img, Mat &res, int umbral);
 
 int main ( int argc, char** argv )
 {
-    if( argc < 4 )
+    if( argc < 5 )
     {
-      cout<<" ingresar : "<<argv[0]<<" (nombre imagen) (distancia entre colores) (metodo 1(manual) 2(todos) 3(intensidades) ) "<<endl;
+       cout<<" ingresar : "<<argv[0]<<" (nombre imagen) ( esquinas (0-1) ) (distancia entre colores) (metodo 1(manual) 2(todos) 3(intensidades) ) "<<endl;
       return -1;
     }
-    const char* imageName = argv[1];
-    float       distancia = atof(argv[2]);
-    int         metodo    = atoi(argv[3]);
+    const char* imageName =      argv[1];
+    int         esquinas  = atoi(argv[2]);
+    float       distancia = atof(argv[3]);
+    int         metodo    = atoi(argv[4]);
 
+
+    if ( esquinas != 0 && esquinas != 1 )
+    {
+      printf("esquinas debe ser 1 o 0\n");
+      return -1;
+    }
     // Loads an image
     Mat src;
     src = imread( imageName, IMREAD_COLOR );
@@ -342,7 +349,7 @@ int main ( int argc, char** argv )
 
     cout<<"fuentes : "<<fuentes.size()<<endl;
 
-    regiones( dest, dest, false, distancia, fuentes);
+    regiones( dest, dest, (bool)esquinas , distancia, fuentes);
 
 
     std::stringstream ss( argv[ 1 ] );
