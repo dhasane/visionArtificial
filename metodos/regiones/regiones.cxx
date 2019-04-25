@@ -352,12 +352,31 @@ int main ( int argc, char** argv )
     /*/
     imwrite( "hola.jpg" , dest );
 
-    Mat blanco(src.rows, src.cols, CV_8UC3, Scalar( 255,255,255 ));
+    int umbral = 2; 
+    Mat hola;
 
+    cvtColor( dest, hola, COLOR_BGR2GRAY );
+
+    Mat blanco(src.rows, src.cols, CV_8UC3, Scalar( 255,255,255 ));
     
+    MatIterator_< Vec3b > it, end;
+    it  = hola.begin< Vec3b >( );
+    end = hola.end< Vec3b >( );
+
+    for(  ; it != end; ++it) // contar aparicion de cada tonalidad
+    {
+        if( (*it)[0] < umbral ) { (*it)[0] = 255; }
+        else                    { (*it)[0] = 0; }
+        
+    }
+
+
+    cvtColor( hola, hola, COLOR_GRAY2BGR );
+
     //restaNegativa(src, dest, dest );
     //binarizar(dest,dest,2);
-    imwrite( "res.jpg" , src - (blanco-dest) );
+    // src - (blanco-dest)
+    imwrite( "res.jpg" , src-hola );
     
     //*/
     
@@ -370,16 +389,7 @@ void binarizar(Mat &src, Mat &dst, int umbral)
     imshow( "image", src);
     waitKey(0);
 
-    MatIterator_< Vec3b > it, end;
-    it  = src.begin< Vec3b >( );
-    end = src.end< Vec3b >( );
-
-    for(  ; it != end; ++it) // contar aparicion de cada tonalidad
-    {
-        if( (*it)[0] < umbral ){ (*it)[0] = umbral; }
-        if( (*it)[1] < umbral ){ (*it)[1] = umbral; }
-        if( (*it)[2] < umbral ){ (*it)[2] = umbral; }
-    }
+    
 
     namedWindow( "image", 1 );
     imshow( "image", src);
