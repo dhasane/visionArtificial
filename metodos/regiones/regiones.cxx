@@ -558,11 +558,5 @@ vector<Punto> manual(Mat & img)
     
     int c = waitKey(0);
 
-    /*
-    if( (char)c == 'w' || (char)c == ' ' )
-    {
-        
-    }
-    */
     return fuentes;
 }
