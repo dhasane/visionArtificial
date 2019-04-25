@@ -94,14 +94,27 @@ class Recorrido{
         // imprime :v 
         void imprimir()
         {
-           for(int a = 0; a < this->tamy ; a++)
+            bool yes= false;
+            int cant = 0;
+            for(int a = 0; a < this->tamy ; a++)
             {
+                yes = false;
                 for (int b = 0; b < this->tamx ; b++)
                 {
-                    std::cout<<mat[a][b]<<" ";
+                    if (mat[a][b] == 0)
+                    {
+                        std::cout<<mat[a][b]<<" ";
+                        yes = true;
+                        cant++;
+                    }
+                    
                 }
-                std::cout<<std::endl;
+                if(yes)
+                {
+                    std::cout<<std::endl;
+                }
             } 
+            cout<<cant<<endl;
         }
 
         bool interno(int x, int y)
@@ -135,10 +148,21 @@ class Area{
             puntos = new vector<Punto>();
             posibles = new deque<Punto>();
             puntos->push_back(p);
-            total0 = p.color[0];
-            total1 = p.color[1]; // full lazy 
-            total2 = p.color[2];
+            
+            this->total0 = 0;
+            this->total1 = 0; // full lazy 
+            this->total2 = 0;
+
+            agregarATotal( p.color );
+
             cant = 1;
+        }
+
+        void agregarATotal( Vec3b color )
+        {
+            this->total0 += color[0];
+            this->total1 += color[1]; // full lazy 
+            this->total2 += color[2];
         }
 
         int size()
@@ -165,11 +189,10 @@ class Area{
         }
 
         bool insertar(Punto p, int cercania )
-        {   
-            //cout<<size()<<endl;
-
+        {
             float vinf = total0/cant - cercania;
             float vsup = total0/cant + cercania;
+
             if (vinf < 0)   vinf = 0;
             if (255 < vsup) vsup = 255;
             
@@ -189,14 +212,10 @@ class Area{
 
             bool bo2 = vinf < p.color[2] && p.color[2] < vsup;
 
-            if ( bo0 && bo1 && bo1 )
+            if ( bo0 && bo1 && bo2 )
             {
                 puntos->push_back( p );
-                
-                // medir promedios
-                this->total0 += p.color[0];
-                this->total1 += p.color[1];
-                this->total2 += p.color[2];
+                agregarATotal( p.color );
                 cant ++;
                 return true;
             }
@@ -408,7 +427,7 @@ bool mirarPunto(vector<Punto> &puntos, Mat &img, int x, int y, Recorrido rec)
     return false;
 }
 
-// mira los pixeles adyacentes al que se esta mirando, en caso de que estos sean viables
+// mira los pixeles adyacentes al que se esta mirando, en caso de que estos sean viables los agrega a puntos
 bool adyacentes(vector<Punto> &puntos, Mat &img, int x , int y, bool esquinas , Recorrido rec)
 {
     bool cambio = false;
@@ -441,7 +460,9 @@ void conseguirArea(Area &area, Mat &img, bool esquinas,int distancia, Recorrido 
 
     while( area.sizePosibles( ) > 0 )
     {
-        if( area.insertar( area.posiblesTop() , distancia ) )
+        Punto act = area.posiblesTop();
+
+        if( area.insertar( act , distancia ) )
         {
             rec.verPos(area.top().x, area.top().y);
             nuevos = new vector<Punto>(); 
@@ -450,7 +471,7 @@ void conseguirArea(Area &area, Mat &img, bool esquinas,int distancia, Recorrido 
         }
         else
         {
-            rec.noVer(area.top().x, area.top().y);
+            rec.noVer( act.x, act.y);
         }
     }    
 }
@@ -459,11 +480,8 @@ void conseguirArea(Area &area, Mat &img, bool esquinas,int distancia, Recorrido 
 void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fuentes)
 {
     Recorrido rec(src.cols,src.rows);
-
     Conjunto *conj = new Conjunto();
     
-
-    res = src.clone();
     Vec3b col = (0,0,0);
 
     Area* area;
@@ -509,7 +527,6 @@ void diferenciaImagenes(Mat src,Mat &dest)
   }
   imwrite("aa.jpg", gray);
 }
-
 
 // metodos para conseguir fuentes 
 vector<Punto> intensidadColores( Mat &res )
@@ -563,11 +580,14 @@ vector<Punto> intensidadColores( Mat &res )
     int pos = 0;
     bool max;
     bool min;
+    bool mid;
     for(  ; it != end; ++it) // contar aparicion de cada tonalidad
     {
         max = (*it)[0] == max0 || (*it)[1] == max1 || (*it)[2] == max2;
         min = (*it)[0] == min0 || (*it)[1] == min1 || (*it)[2] == min2;
-        if ( max || min )
+        mid = (*it)[0] == (max0+min0)/2 || (*it)[1] == (max1+min1)/2 || (*it)[2] == (max2+min2)/2;
+        
+        if ( max || min || mid )
         {
             fuentes.push_back( Punto( pos % res.cols ,pos / res.cols, *it) );
         }
