@@ -291,40 +291,59 @@ vector<Punto> manual(Mat & img);
 
 int main ( int argc, char** argv )
 {
-    if( argc < 2 )
+    if( argc < 4 )
     {
-      cout<<" ingresar : "<<argv[0]<<" (nombre imagen)"<<endl;
+      cout<<" ingresar : "<<argv[0]<<" (nombre imagen) (distancia entre colores) (metodo 1(manual) 2(todos) 3(intensidades) ) "<<endl;
       return -1;
     }
-    Mat src;
     const char* imageName = argv[1];
+    float       distancia = atof(argv[2]);
+    int         metodo    = atoi(argv[3]);
 
     // Loads an image
+    Mat src;
     src = imread( imageName, IMREAD_COLOR ); 
     if( src.empty() )
     {
         printf(" Error opening image\n");
         return -1;
     }
-    
-    string metodo;
-    std::stringstream ss( argv[ 1 ] );
-    std::string basename;
-    getline( ss, basename, '.' );
 
+    if ( 0 > distancia || distancia > 255 )
+    {
+        printf("la distancia debe estar entre 0 y 255 \n");
+        return -1;
+    }
+    
+    int topeMetodos= 3;
+    if(0 >= metodo || metodo > topeMetodos )
+    {
+        printf("metodo debe estar entre 1 y %d \n",topeMetodos);
+        return -1;
+    }
+
+    vector<Punto> fuentes;
     Mat dest = src.clone();
 
     //cvtColor( src, dest, COLOR_BGR2GRAY );
 
-    //vector<Punto> fuentes = intensidadColores ( dest );
-    //vector<Punto> fuentes = todos ( dest );
-    vector<Punto> fuentes = manual ( dest );
-
+    switch(metodo)
+    {
+        case 1: fuentes = manual ( dest );              break;
+        case 2: fuentes = todos ( dest );               break;
+        case 3: fuentes = intensidadColores ( dest );   break;
+    }
+    
     cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl<< "total pixeles : "<<src.cols * src.rows<<endl;
 
     cout<<"fuentes : "<<fuentes.size()<<endl;
 
-    regiones( dest, dest, false, 50, fuentes);
+    regiones( dest, dest, false, distancia, fuentes);
+
+
+    std::stringstream ss( argv[ 1 ] );
+    std::string basename;
+    getline( ss, basename, '.' );
 
     /*
     imwrite( basename + "hola.jpg" , dest );
@@ -538,7 +557,7 @@ static void onMouse( int event, int x, int y, int flags, void* )
         if( prevPt.x < 0 )
             prevPt = pt;
 
-        fuentes.push_back( Punto( x, y, col) );
+        fuentes.push_back( Punto( x, y, immg.at<Vec3b>( Point( x, y) ) ) );
 
         line( markerMask, prevPt, pt, Scalar::all(255), 5, 8, 0 );
         line( immg, prevPt, pt, Scalar::all(255), 5, 8, 0 );
