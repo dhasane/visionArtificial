@@ -369,6 +369,8 @@ int main ( int argc, char** argv )
         else                    { (*it)[0] = 0; }
         
     }
+
+
     cvtColor( hola, hola, COLOR_GRAY2BGR );
 
     //restaNegativa(src, dest, dest );
@@ -380,6 +382,91 @@ int main ( int argc, char** argv )
     //*/
     
     return 0;
+}
+
+void binarizar(Mat &src, Mat &dst, int umbral)
+{
+    namedWindow( "image", 1 );
+    imshow( "image", src);
+    waitKey(0);
+
+    
+
+    namedWindow( "image", 1 );
+    imshow( "image", src);
+    waitKey(0);
+}
+
+void restaNegativa(Mat &src, Mat &filtro, Mat &res)
+{
+
+    Vec3b negro = (0,0,0);
+    Vec3b blanco = (255,255,255);
+
+    res = src.clone();
+
+    namedWindow( "image", 1 );
+    namedWindow( "imag", 1 );
+    cout<<"res"<<endl;
+    imshow( "image", res);
+    waitKey(0);
+    
+    cout<<"filtro "<<endl;
+    imshow( "imag", filtro);
+    waitKey(0);
+
+    for ( int y = 0 ; y < filtro.cols; ++y)
+    {
+        for ( int x = 0 ; x < filtro.rows; ++x )
+        {
+            if( filtro.at<Vec3b>( Point( x , y ) ) == negro )
+            {
+                res.at<Vec3b>( Point( x , y ) ) = src.at<Vec3b>( Point( x , y ) );  
+            }
+            
+        }    
+    }
+    cout<<"res"<<endl;
+    imshow( "image", res);
+    waitKey(0);
+   
+    /*
+    namedWindow( "image", 1 );
+    
+    Vec3b negro = (0,0,0);
+    Vec3b blanco = (255,255,255);
+
+    res = src.clone();
+
+    MatIterator_< Vec3b > it, end, itres, endres;
+    it  = filtro.begin< Vec3b >( );
+    end = filtro.end< Vec3b >( );
+
+    itres  = res.begin< Vec3b >( );
+    endres = res.end< Vec3b >( );
+    
+    Vec3b *col;
+
+    imshow( "image", res);
+    waitKey(0);
+    
+    for(  ; it != end, itres != endres ; ++it, ++itres) // contar aparicion de cada tonalidad
+    {
+        //cout<<"hola ";
+        if ( (*it)[0] == 0 && (*it)[1] == 0 && (*it)[2] == 0 )
+        {
+            cout<<" blancoooooo "<<endl;
+            *itres = (255,255,255);
+        }
+        else
+        {
+            *itres = (0,0,0);
+        }
+    }
+
+    imshow( "image", res);
+    waitKey(0);
+    */
 }
 
 // imprime una lista de puntos 
