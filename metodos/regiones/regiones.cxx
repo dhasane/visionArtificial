@@ -7,6 +7,10 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
 
+
+#include <opencv2/core/utility.hpp>
+#include "opencv2/imgcodecs.hpp"
+
 using namespace cv;
 
 using namespace std;
@@ -257,34 +261,33 @@ class Conjunto{
             return areas->size();
         }
 
-        void conjuntoAImagen(Mat &img)
+        void conjuntoAImagen(Mat &img, Mat &res)
         {
+            res = img.clone();
+            //res = cv::Scalar(255,255,255);
+            res = cv::Scalar(0,0,0);
             for (auto area = areas->begin(); area != areas->end(); ++area)
             {
-                area->areaAImagen(img);
+                area->areaAImagen(res);
             }
         }
-
-        /*
-        void unir()
-        {
-            struct {
-                bool operator()(Area a , Area b) const
-                {   
-                    return a.colorPromedio() < b.colorPromedio();
-                }   
-            } customLess;
-            std::sort(areas->begin(), areas->end(), customLess);
-            //std::sort(areas->begin(), areas->end()); // sort simple 
-        }//*/
 };
 
+// corta, pega, une, hace magia y retorna una imagen con las areas 
 void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fuentes);
-vector<Punto> intensidadColores( Mat &res );
+
 
 void imprimirListaPuntos(vector<Punto> fuentes);
 
+// seleccion de fuentes
+// toma los valores con max y min intensidad
+vector<Punto> intensidadColores( Mat &res );
+
+// todos los pixeles como fuentes -> el mejor hasta el momento
 vector<Punto> todos( Mat &res );
+
+// muestra una pantalla, para que el usuario decida fuentes
+vector<Punto> manual(Mat & img);
 
 int main ( int argc, char** argv )
 {
@@ -314,18 +317,20 @@ int main ( int argc, char** argv )
     //cvtColor( src, dest, COLOR_BGR2GRAY );
 
     //vector<Punto> fuentes = intensidadColores ( dest );
-    vector<Punto> fuentes = todos ( dest );
+    //vector<Punto> fuentes = todos ( dest );
+    vector<Punto> fuentes = manual ( dest );
 
     cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl<< "total pixeles : "<<src.cols * src.rows<<endl;
 
     cout<<"fuentes : "<<fuentes.size()<<endl;
 
-    regiones( dest, dest, true, 50, fuentes);
+    regiones( dest, dest, false, 50, fuentes);
 
-
-    //imwrite( basename + + ".jpg" , prueba(src) );
+    /*
+    imwrite( basename + "hola.jpg" , dest );
+    /*/
     imwrite( "hola.jpg" , dest );
-    
+    //*/
     
     return 0;
 }
@@ -422,7 +427,7 @@ void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fu
     }
 
     cout<<endl<<conj->size()<<endl;
-    conj->conjuntoAImagen(res);
+    conj->conjuntoAImagen(res, res);
 }
 
 
@@ -434,40 +439,40 @@ vector<Punto> intensidadColores( Mat &res )
     it  = res.begin< Vec3b >( );
     end = res.end< Vec3b >( );
 
-    int maxAzul = 0;
-    int maxVerde= 0;
-    int maxRojo = 0;
+    int max0 = 0;
+    int max1= 0;
+    int max2 = 0;
 
-    int minAzul = 255;
-    int minVerde= 255;
-    int minRojo = 255;
+    int min0 = 255;
+    int min1= 255;
+    int min2 = 255;
 
     for(  ; it != end; ++it) // contar aparicion de cada tonalidad
     {
-        if ( (*it)[0] > maxAzul)// azul
+        if ( (*it)[0] > max0)// azul
         {
-            maxAzul  = (*it)[0];
+            max0  = (*it)[0];
         }
-        if ( (*it)[1] > maxVerde)// verde
+        if ( (*it)[1] > max1)// verde
         {
-            maxVerde = (*it)[1];
+            max1 = (*it)[1];
         }
-        if ( (*it)[2] > maxRojo)// rojo
+        if ( (*it)[2] > max2)// rojo
         {
-            maxRojo  = (*it)[2];
+            max2  = (*it)[2];
         }
 
-        if ( (*it)[0] < minAzul)// azul
+        if ( (*it)[0] < min0)// azul
         {
-            minAzul  = (*it)[0];
+            min0  = (*it)[0];
         }
-        if ( (*it)[1] < minVerde)// verde
+        if ( (*it)[1] < min1)// verde
         {
-            minVerde = (*it)[1];
+            min1 = (*it)[1];
         }
-        if ( (*it)[2] < minRojo)// rojo
+        if ( (*it)[2] < min2)// rojo
         {
-            minRojo  = (*it)[2];
+            min2  = (*it)[2];
         }
     }
 
@@ -480,8 +485,8 @@ vector<Punto> intensidadColores( Mat &res )
     bool min;
     for(  ; it != end; ++it) // contar aparicion de cada tonalidad
     {
-        max = (*it)[0] == maxAzul || (*it)[1] == maxVerde || (*it)[2] == maxRojo;
-        min = (*it)[0] == minAzul || (*it)[1] == minVerde || (*it)[2] == minRojo;
+        max = (*it)[0] == max0 || (*it)[1] == max1 || (*it)[2] == max2;
+        min = (*it)[0] == min0 || (*it)[1] == min1 || (*it)[2] == min2;
         if ( max || min )
         {
             fuentes.push_back( Punto( pos % res.cols ,pos / res.cols, *it) );
@@ -489,14 +494,14 @@ vector<Punto> intensidadColores( Mat &res )
         pos++;
     }
 
-    cout<<maxAzul<<"  "<<maxVerde<<"  "<<maxRojo<<"  "<<endl;
+    cout<<max0<<"  "<<max1<<"  "<<max2<<"  "<<endl;
 
     return fuentes;
 
 
 }
 
-
+// retorna todos los valores 
 vector<Punto> todos( Mat &res )
 {
     MatIterator_< Vec3b > it, end;
@@ -512,4 +517,52 @@ vector<Punto> todos( Mat &res )
     }
 
     return fuentes;    
+}
+
+
+vector<Punto> fuentes;
+Mat markerMask, immg;
+Point prevPt(-1, -1);
+static void onMouse( int event, int x, int y, int flags, void* )
+{
+    Vec3b col = (0,0,0);
+    if( x < 0 || x >= immg.cols || y < 0 || y >= immg.rows )
+        return;
+    if( event == EVENT_LBUTTONUP || !(flags & EVENT_FLAG_LBUTTON) )
+        prevPt = Point(-1,-1);
+    else if( event == EVENT_LBUTTONDOWN )
+        prevPt = Point(x,y);
+    else if( event == EVENT_MOUSEMOVE && (flags & EVENT_FLAG_LBUTTON) )
+    {
+        Point pt(x, y);
+        if( prevPt.x < 0 )
+            prevPt = pt;
+
+        fuentes.push_back( Punto( x, y, col) );
+
+        line( markerMask, prevPt, pt, Scalar::all(255), 5, 8, 0 );
+        line( immg, prevPt, pt, Scalar::all(255), 5, 8, 0 );
+        prevPt = pt;
+        imshow("image", immg);
+    }
+}
+
+vector<Punto> manual(Mat & img)
+{
+    immg = img.clone();
+    namedWindow( "image", 1 );
+
+    imshow( "image", img );
+    setMouseCallback( "image", onMouse, 0 );
+
+    
+    int c = waitKey(0);
+
+    /*
+    if( (char)c == 'w' || (char)c == ' ' )
+    {
+        
+    }
+    */
+    return fuentes;
 }
