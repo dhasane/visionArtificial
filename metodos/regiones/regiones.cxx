@@ -289,6 +289,8 @@ vector<Punto> todos( Mat &res );
 // muestra una pantalla, para que el usuario decida fuentes
 vector<Punto> manual(Mat & img);
 
+void restaNegativa(Mat &src, Mat &filtro, Mat &res);
+
 int main ( int argc, char** argv )
 {
     if( argc < 4 )
@@ -349,9 +351,52 @@ int main ( int argc, char** argv )
     imwrite( basename + "hola.jpg" , dest );
     /*/
     imwrite( "hola.jpg" , dest );
+
+    restaNegativa(src, dest, dest );
+    imwrite( "res.jpg" , dest );
+    
     //*/
     
     return 0;
+}
+
+void restaNegativa(Mat &src, Mat &filtro, Mat &res)
+{
+    namedWindow( "image", 1 );
+    
+    Vec3b negro = (0,0,0);
+    Vec3b blanco = (255,255,255);
+
+    res = src.clone();
+
+    MatIterator_< Vec3b > it, end, itres, endres;
+    it  = filtro.begin< Vec3b >( );
+    end = filtro.end< Vec3b >( );
+
+    itres  = res.begin< Vec3b >( );
+    endres = res.end< Vec3b >( );
+    
+    Vec3b *col;
+
+    imshow( "image", res);
+    waitKey(0);
+    
+    for(  ; it != end, itres != endres ; ++it, ++itres) // contar aparicion de cada tonalidad
+    {
+        //cout<<"hola ";
+        if ( (*it)[0] == 0 && (*it)[1] == 0 && (*it)[2] == 0 )
+        {
+            cout<<" blancoooooo "<<endl;
+            *itres = (255,255,255);
+        }
+        else
+        {
+            *itres = (0,0,0);
+        }
+    }
+
+    imshow( "image", res);
+    waitKey(0);
 }
 
 // imprime una lista de puntos 
@@ -445,7 +490,7 @@ void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fu
         }
     }
 
-    cout<<endl<<conj->size()<<endl;
+    cout<<endl<<"areas : "<<conj->size()<<endl;
     conj->conjuntoAImagen(res, res);
 }
 
@@ -538,7 +583,8 @@ vector<Punto> todos( Mat &res )
     return fuentes;    
 }
 
-
+// esto se me hace horrible, pero no entiendo bien como funcionan estas funciones
+// por lo que no puedo quitar las variables globales
 vector<Punto> fuentes;
 Mat markerMask, immg;
 Point prevPt(-1, -1);
