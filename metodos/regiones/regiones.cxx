@@ -15,7 +15,7 @@ using namespace cv;
 
 using namespace std;
 
-bool local = false;
+bool local = true;
 
 class Totales{
 
@@ -385,14 +385,27 @@ int main ( int argc, char** argv )
 {
     if( argc < 5 )
     {
-      cout<<" ingresar : "<<argv[0]<<" (nombre imagen) ( esquinas (0-1) ) (distancia entre colores) (metodo 1(manual) 2(todos) 3(intensidades) ) "<<endl;
+      cout<<" ingresar : "<<argv[0]<<" (nombre imagen) ( esquinas (0-1) ) (distancia entre colores) (metodo 1(manual) 2(todos) 3(intensidades) ) (opcional: local)"<<endl;
       return -1;
     }
     const char* imageName =      argv[1];
     int         esquinas  = atoi(argv[2]);
     float       distancia = atof(argv[3]);
     int         metodo    = atoi(argv[4]);
+    int         localidad = argc == 6 ? atoi(argv[5]) : 1 ; 
 
+    if ( localidad != 0 && localidad != 1 )
+    {
+        printf("local debe ser 1 o 0\n");
+        return -1;
+    }
+    local = (bool) localidad;
+
+    if ( esquinas != 0 && esquinas != 1 )
+    {
+        printf("esquinas debe ser 1 o 0\n");
+        return -1;
+    }
 
     if ( esquinas != 0 && esquinas != 1 )
     {
@@ -441,7 +454,7 @@ int main ( int argc, char** argv )
     regiones( dest, dest, (bool)esquinas , distancia, fuentes);
 
     std::string basename = "";
-    /*
+    
     std::stringstream ss( argv[ 1 ] );
     getline( ss, basename, '.' );
 
