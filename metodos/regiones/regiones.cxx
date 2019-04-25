@@ -15,6 +15,40 @@ using namespace cv;
 
 using namespace std;
 
+bool local = false;
+
+class Totales{
+
+    public:
+
+    float total0;
+    float total1; // para cada uno de los canales
+    float total2;
+
+    int cant;
+
+    Totales()
+    {
+        this->total0 = 0;
+        this->total1 = 0; // full lazy 
+        this->total2 = 0;
+        
+        this->cant = 0;
+    }
+
+    void agregarATotal( Vec3b color )
+    {
+        this->total0 += color[0];
+        this->total1 += color[1]; // full lazy 
+        this->total2 += color[2];
+        
+        this->cant ++;
+    }
+
+};
+
+Totales Total;
+
 class Punto{
 
     public:
@@ -132,14 +166,7 @@ class Area{
     vector<Punto> *puntos;  // puntos del area
     deque<Punto> *posibles;// posibles puntos del area :D
 
-
-    float total0;
-    float total1; // para cada uno de los canales
-    float total2;
-
-    int cant;
-
-    
+    Totales promedios;
 
     public:
         
@@ -148,22 +175,18 @@ class Area{
             puntos = new vector<Punto>();
             posibles = new deque<Punto>();
             puntos->push_back(p);
-            
-            this->total0 = 0;
-            this->total1 = 0; // full lazy 
-            this->total2 = 0;
 
-            agregarATotal( p.color );
-
-            cant = 1;
+            if (local)
+            {
+                promedios.agregarATotal( p.color );
+            }
+            else
+            {
+                Total.agregarATotal( p.color );
+            }
         }
 
-        void agregarATotal( Vec3b color )
-        {
-            this->total0 += color[0];
-            this->total1 += color[1]; // full lazy 
-            this->total2 += color[2];
-        }
+        
 
         int size()
         {
@@ -190,6 +213,26 @@ class Area{
 
         bool insertar(Punto p, int cercania )
         {
+            float total0;
+            float total1; // para cada uno de los canales
+            float total2;
+            int cant;
+
+            if (local)
+            {
+                total0 = promedios.total0;
+                total1 = promedios.total1;
+                total2 = promedios.total2;
+                cant   = promedios.cant;
+            }
+            else
+            {
+                total0 = Total.total0;
+                total1 = Total.total1;
+                total2 = Total.total2;
+                cant   = Total.cant;
+            }
+            
             float vinf = total0/cant - cercania;
             float vsup = total0/cant + cercania;
 
@@ -215,8 +258,16 @@ class Area{
             if ( bo0 && bo1 && bo2 )
             {
                 puntos->push_back( p );
-                agregarATotal( p.color );
-                cant ++;
+                
+                if (local)
+                {
+                    promedios.agregarATotal( p.color );
+                }
+                else
+                {
+                    Total.agregarATotal( p.color );
+                }
+
                 return true;
             }
 
@@ -241,6 +292,26 @@ class Area{
 
         Vec3b colorPromedio()
         {
+            float total0;
+            float total1; // para cada uno de los canales
+            float total2;
+            int cant;
+
+            if (local)
+            {
+                total0 = promedios.total0;
+                total1 = promedios.total1;
+                total2 = promedios.total2;
+                cant   = promedios.cant;
+            }
+            else
+            {
+                total0 = Total.total0;
+                total1 = Total.total1;
+                total2 = Total.total2;
+                cant   = Total.cant;
+            }
+
             Vec3b color;
             color[0] = total0/cant;
             color[1] = total1/cant;
