@@ -290,7 +290,7 @@ vector<Punto> todos( Mat &res );
 vector<Punto> manual(Mat & img);
 
 void restaNegativa(Mat &src, Mat &filtro, Mat &res);
-
+void binarizar(Mat &img, Mat &res, int umbral);
 int main ( int argc, char** argv )
 {
     if( argc < 4 )
@@ -352,16 +352,74 @@ int main ( int argc, char** argv )
     /*/
     imwrite( "hola.jpg" , dest );
 
-    restaNegativa(src, dest, dest );
-    imwrite( "res.jpg" , dest );
+    Mat blanco(src.rows, src.cols, CV_8UC3, Scalar( 255,255,255 ));
+
+    
+    //restaNegativa(src, dest, dest );
+    //binarizar(dest,dest,2);
+    imwrite( "res.jpg" , src - (blanco-dest) );
     
     //*/
     
     return 0;
 }
 
+void binarizar(Mat &src, Mat &dst, int umbral)
+{
+    namedWindow( "image", 1 );
+    imshow( "image", src);
+    waitKey(0);
+
+    MatIterator_< Vec3b > it, end;
+    it  = src.begin< Vec3b >( );
+    end = src.end< Vec3b >( );
+
+    for(  ; it != end; ++it) // contar aparicion de cada tonalidad
+    {
+        if( (*it)[0] < umbral ){ (*it)[0] = umbral; }
+        if( (*it)[1] < umbral ){ (*it)[1] = umbral; }
+        if( (*it)[2] < umbral ){ (*it)[2] = umbral; }
+    }
+
+    namedWindow( "image", 1 );
+    imshow( "image", src);
+    waitKey(0);
+}
+
 void restaNegativa(Mat &src, Mat &filtro, Mat &res)
 {
+
+    Vec3b negro = (0,0,0);
+    Vec3b blanco = (255,255,255);
+
+    res = src.clone();
+
+    namedWindow( "image", 1 );
+    namedWindow( "imag", 1 );
+    cout<<"res"<<endl;
+    imshow( "image", res);
+    waitKey(0);
+    
+    cout<<"filtro "<<endl;
+    imshow( "imag", filtro);
+    waitKey(0);
+
+    for ( int y = 0 ; y < filtro.cols; ++y)
+    {
+        for ( int x = 0 ; x < filtro.rows; ++x )
+        {
+            if( filtro.at<Vec3b>( Point( x , y ) ) == negro )
+            {
+                res.at<Vec3b>( Point( x , y ) ) = src.at<Vec3b>( Point( x , y ) );  
+            }
+            
+        }    
+    }
+    cout<<"res"<<endl;
+    imshow( "image", res);
+    waitKey(0);
+   
+    /*
     namedWindow( "image", 1 );
     
     Vec3b negro = (0,0,0);
@@ -397,6 +455,7 @@ void restaNegativa(Mat &src, Mat &filtro, Mat &res)
 
     imshow( "image", res);
     waitKey(0);
+    */
 }
 
 // imprime una lista de puntos 
