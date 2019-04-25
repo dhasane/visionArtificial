@@ -478,6 +478,32 @@ void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fu
 }
 
 
+
+void diferenciaImagenes(Mat src,Mat &dest)
+{
+  Mat image = dest.clone();
+  Mat gray(image.rows, image.cols, CV_32F);
+  gray = dest.clone();
+  cout<<dest.rows<<" "<<dest.cols<<endl;
+  getchar();
+  for (size_t i = 0; i < dest.rows; i++)
+  {
+    for (size_t j = 0; j < dest.cols; j++)
+    {
+        Vec3b pixel = dest.at<Vec3b>(i, j);
+
+        if(pixel[0] == 0 && pixel[1] == 0 && pixel[2] == 0 ){
+          gray.at<uchar>(i, j) = 0;
+        }
+        else{
+          gray.at<Vec3b>(i, j) = src.at<Vec3b>(i, j);
+        }
+    }
+  }
+  imwrite("aa.jpg", gray);
+}
+
+
 // metodos para conseguir fuentes 
 vector<Punto> intensidadColores( Mat &res )
 {
