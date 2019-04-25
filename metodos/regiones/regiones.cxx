@@ -293,14 +293,22 @@ void restaNegativa(Mat &src, Mat &filtro, Mat &res);
 void binarizar(Mat &img, Mat &res, int umbral);
 int main ( int argc, char** argv )
 {
-    if( argc < 4 )
+    if( argc < 5 )
     {
-      cout<<" ingresar : "<<argv[0]<<" (nombre imagen) (distancia entre colores) (metodo 1(manual) 2(todos) 3(intensidades) ) "<<endl;
+      cout<<" ingresar : "<<argv[0]<<" (nombre imagen) ( esquinas (0-1) ) (distancia entre colores) (metodo 1(manual) 2(todos) 3(intensidades) ) "<<endl;
       return -1;
     }
-    const char* imageName = argv[1];
-    float       distancia = atof(argv[2]);
-    int         metodo    = atoi(argv[3]);
+    const char* imageName =      argv[1];
+    int         esquinas  = atoi(argv[2]);
+    float       distancia = atof(argv[3]);
+    int         metodo    = atoi(argv[4]);
+
+
+    if ( esquinas != 0 && esquinas != 1 )
+    {
+        printf("esquinas debe ser 1 o 0\n");
+        return -1;
+    }
 
     // Loads an image
     Mat src;
@@ -340,7 +348,7 @@ int main ( int argc, char** argv )
 
     cout<<"fuentes : "<<fuentes.size()<<endl;
 
-    regiones( dest, dest, false, distancia, fuentes);
+    regiones( dest, dest, (bool)esquinas , distancia, fuentes);
 
 
     std::stringstream ss( argv[ 1 ] );
@@ -367,7 +375,6 @@ int main ( int argc, char** argv )
     {
         if( (*it)[0] < umbral ) { (*it)[0] = 255; }
         else                    { (*it)[0] = 0; }
-        
     }
     cvtColor( hola, hola, COLOR_GRAY2BGR );
 
