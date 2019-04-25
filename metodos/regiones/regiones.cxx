@@ -300,7 +300,7 @@ void imprimirListaPuntos(vector<Punto> fuentes);
 
 // seleccion de fuentes
 // toma los valores con max y min intensidad
-vector<Punto> intensidadColores( Mat &res );
+vector<Punto> intensidadColores( Mat &res ,bool mid);
 
 // todos los pixeles como fuentes -> el mejor hasta el momento
 vector<Punto> todos( Mat &res );
@@ -308,8 +308,8 @@ vector<Punto> todos( Mat &res );
 // muestra una pantalla, para que el usuario decida fuentes
 vector<Punto> manual(Mat & img);
 
-void restaNegativa(Mat &src, Mat &filtro, Mat &res);
-void binarizar(Mat &img, Mat &res, int umbral);
+void binarizar(Mat & dest, Mat & hola , int umbral);
+
 int main ( int argc, char** argv )
 {
     if( argc < 5 )
@@ -358,9 +358,9 @@ int main ( int argc, char** argv )
 
     switch(metodo)
     {
-        case 1: fuentes = manual ( dest );              break;
-        case 2: fuentes = todos ( dest );               break;
-        case 3: fuentes = intensidadColores ( dest );   break;
+        case 1: fuentes = manual ( dest );                      break;
+        case 2: fuentes = todos ( dest );                       break;
+        case 3: fuentes = intensidadColores ( dest , false );   break;
     }
     
     cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl<< "total pixeles : "<<src.cols * src.rows<<endl;
@@ -369,43 +369,45 @@ int main ( int argc, char** argv )
 
     regiones( dest, dest, (bool)esquinas , distancia, fuentes);
 
-
+    std::string basename = "";
+    /*
     std::stringstream ss( argv[ 1 ] );
-    std::string basename;
     getline( ss, basename, '.' );
 
-    /*
-    imwrite( basename + "hola.jpg" , dest );
-    /*/
-    imwrite( "hola.jpg" , dest );
+    //*/
 
-    int umbral = 2; 
+    imwrite( basename + "Areas.jpg" , dest );
+
     Mat hola;
 
-    cvtColor( dest, hola, COLOR_BGR2GRAY );
+    binarizar(dest,hola,2);
 
-    Mat blanco(src.rows, src.cols, CV_8UC3, Scalar( 255,255,255 ));
+    imwrite( basename + "Etiqueta.jpg" , hola );
+
+    imwrite( basename + "Segmentada.jpg" , src-hola );
+    
+    
+    return 0;
+}
+
+void binarizar(Mat & dest, Mat & hola , int umbral)
+{
+    //int umbral = 2; 
+    
+
+    cvtColor( dest, hola, COLOR_BGR2GRAY );
+    //Mat blanco(src.rows, src.cols, CV_8UC3, Scalar( 255,255,255 ));
     
     MatIterator_< Vec3b > it, end;
     it  = hola.begin< Vec3b >( );
     end = hola.end< Vec3b >( );
 
-    for(  ; it != end; ++it) // contar aparicion de cada tonalidad
+    for(  ; it != end; ++it)
     {
         if( (*it)[0] < umbral ) { (*it)[0] = 255; }
         else                    { (*it)[0] = 0; }
     }
     cvtColor( hola, hola, COLOR_GRAY2BGR );
-
-    //restaNegativa(src, dest, dest );
-    //binarizar(dest,dest,2);
-    // src - (blanco-dest)
-    imwrite( "res.jpg" , src-hola );
-    
-    
-    //*/
-    
-    return 0;
 }
 
 // imprime una lista de puntos 
@@ -529,7 +531,7 @@ void diferenciaImagenes(Mat src,Mat &dest)
 }
 
 // metodos para conseguir fuentes 
-vector<Punto> intensidadColores( Mat &res )
+vector<Punto> intensidadColores( Mat &res ,bool mitad)
 {
     
     MatIterator_< Vec3b > it, end;
@@ -580,12 +582,12 @@ vector<Punto> intensidadColores( Mat &res )
     int pos = 0;
     bool max;
     bool min;
-    bool mid;
+    bool mid = false;
     for(  ; it != end; ++it) // contar aparicion de cada tonalidad
     {
         max = (*it)[0] == max0 || (*it)[1] == max1 || (*it)[2] == max2;
         min = (*it)[0] == min0 || (*it)[1] == min1 || (*it)[2] == min2;
-        mid = (*it)[0] == (max0+min0)/2 || (*it)[1] == (max1+min1)/2 || (*it)[2] == (max2+min2)/2;
+        mid = mitad && (*it)[0] == (max0+min0)/2 || (*it)[1] == (max1+min1)/2 || (*it)[2] == (max2+min2)/2;
         
         if ( max || min || mid )
         {
@@ -593,8 +595,6 @@ vector<Punto> intensidadColores( Mat &res )
         }
         pos++;
     }
-
-    cout<<max0<<"  "<<max1<<"  "<<max2<<"  "<<endl;
 
     return fuentes;
 
