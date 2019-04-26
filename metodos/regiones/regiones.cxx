@@ -7,12 +7,10 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
 
-
 #include <opencv2/core/utility.hpp>
 #include "opencv2/imgcodecs.hpp"
 
 using namespace cv;
-
 using namespace std;
 
 bool local = true;
@@ -20,31 +18,28 @@ bool local = true;
 class Totales{
 
     public:
+        float total0;
+        float total1; // para cada uno de los canales
+        float total2;
 
-    float total0;
-    float total1; // para cada uno de los canales
-    float total2;
+        int cant;
 
-    int cant;
+        Totales()
+        {
+            this->total0 = 0;
+            this->total1 = 0; // full lazy 
+            this->total2 = 0;
+            this->cant = 0;
+        }
 
-    Totales()
-    {
-        this->total0 = 0;
-        this->total1 = 0; // full lazy 
-        this->total2 = 0;
-        
-        this->cant = 0;
-    }
-
-    void agregarATotal( Vec3b color )
-    {
-        this->total0 += color[0];
-        this->total1 += color[1]; // full lazy 
-        this->total2 += color[2];
-        
-        this->cant ++;
-    }
-
+        void agregarATotal( Vec3b color )
+        {
+            this->total0 += color[0];
+            this->total1 += color[1]; // full lazy 
+            this->total2 += color[2];
+            
+            this->cant ++;
+        }
 };
 
 Totales Total;
@@ -52,7 +47,6 @@ Totales Total;
 class Punto{
 
     public:
-
         int x;
         int y;
         Vec3b color;
@@ -67,19 +61,16 @@ class Punto{
         void imprimir()
         {
             std::cout<<"("<<x<<","<<y<<")"<<endl;
-        }
-        
-    private:
-        
+        }       
 };
 
 class Recorrido{
 
     private:
-    int ** mat;     // matriz 
-    int tamx;       // tam en x
-    int tamy;       // tam en y
-    int noVistos;   // cantidad de pixeles no vistos
+        int ** mat;     // matriz 
+        int tamx;       // tam en x
+        int tamy;       // tam en y
+        int noVistos;   // cantidad de pixeles no vistos
 
     public:
         // crea una matriz para verificar los pixeles ya vistos 
@@ -117,38 +108,24 @@ class Recorrido{
         // en caso de ya haber sido visto, vist = true, no visto = false
         bool visto(int x, int y)
         {
-            //*
             if ( mat[y][x] != 0 )
             {
                 return true;
-            }//*/
+            }
             return false;
         }
 
         // imprime :v 
         void imprimir()
         {
-            bool yes= false;
             int cant = 0;
             for(int a = 0; a < this->tamy ; a++)
             {
-                yes = false;
                 for (int b = 0; b < this->tamx ; b++)
                 {
-                    if (mat[a][b] == 0)
-                    {
-                        std::cout<<mat[a][b]<<" ";
-                        yes = true;
-                        cant++;
-                    }
-                    
+                    std::cout<<mat[a][b]<<" ";
                 }
-                if(yes)
-                {
-                    std::cout<<std::endl;
-                }
-            } 
-            cout<<cant<<endl;
+            }
         }
 
         bool interno(int x, int y)
@@ -185,8 +162,6 @@ class Area{
                 Total.agregarATotal( p.color );
             }
         }
-
-        
 
         int size()
         {
@@ -267,10 +242,8 @@ class Area{
                 {
                     Total.agregarATotal( p.color );
                 }
-
                 return true;
             }
-
             return false;
         }
 
@@ -284,6 +257,7 @@ class Area{
             std::cout<<size()<<" "<<colorPromedio()<<endl;
         }
 
+        // imprime una lista de puntos 
         void imprimirListaPuntos()
         {
             for (auto it = puntos->begin(); it != puntos->end(); ++it)
@@ -319,7 +293,7 @@ class Area{
 
             return color;
         }
-
+        
         void areaAImagen(Mat &img)
         {
             Vec3b color = colorPromedio();
@@ -335,7 +309,6 @@ class Conjunto{
     vector<Area> *areas;
 
     public:
-
         Conjunto()
         {
             areas = new vector<Area>();
@@ -354,7 +327,7 @@ class Conjunto{
         void conjuntoAImagen(Mat &img, Mat &res)
         {
             res = img.clone();
-            //res = cv::Scalar(255,255,255);
+            res = cv::Scalar(255,255,255);
             res = cv::Scalar(0,0,0);
             for (auto area = areas->begin(); area != areas->end(); ++area)
             {
@@ -363,11 +336,10 @@ class Conjunto{
         }
 };
 
-// corta, pega, une, hace magia y retorna una imagen con las areas 
+// corta, pega, une, hace magia y retorna una imagen con las areas encontradas
 void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fuentes);
 
-
-void imprimirListaPuntos(vector<Punto> fuentes);
+void binarizar(Mat & dest, Mat & hola , int umbral);
 
 // seleccion de fuentes
 // toma los valores con max y min intensidad
@@ -378,8 +350,6 @@ vector<Punto> todos( Mat &res );
 
 // muestra una pantalla, para que el usuario decida fuentes
 vector<Punto> manual(Mat & img);
-
-void binarizar(Mat & dest, Mat & hola , int umbral);
 
 int main ( int argc, char** argv )
 {
@@ -413,12 +383,11 @@ int main ( int argc, char** argv )
         return -1;
     }
 
-    // Loads an image
     Mat src;
     src = imread( imageName, IMREAD_COLOR ); 
     if( src.empty() )
     {
-        printf(" Error opening image\n");
+        printf("error al abrir la imagen\n");
         return -1;
     }
 
@@ -438,8 +407,6 @@ int main ( int argc, char** argv )
     vector<Punto> fuentes;
     Mat dest = src.clone();
 
-    //cvtColor( src, dest, COLOR_BGR2GRAY );
-
     switch(metodo)
     {
         case 1: fuentes = manual ( dest );                      break;
@@ -448,9 +415,7 @@ int main ( int argc, char** argv )
     }
     
     cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl<< "total pixeles : "<<src.cols * src.rows<<endl;
-
     cout<<"fuentes : "<<fuentes.size()<<endl;
-
     regiones( dest, dest, (bool)esquinas , distancia, fuentes);
 
     std::string basename = "";
@@ -458,47 +423,26 @@ int main ( int argc, char** argv )
     std::stringstream ss( argv[ 1 ] );
     getline( ss, basename, '.' );
 
-    //*/
-
     imwrite( basename + "Areas.jpg" , dest );
-
     Mat hola;
-
     binarizar(dest,hola,2);
-
     imwrite( basename + "Etiqueta.jpg" , hola );
-
     imwrite( basename + "Segmentada.jpg" , src-hola );
-    
-    
     return 0;
 }
 
 void binarizar(Mat & dest, Mat & hola , int umbral)
 {
-    //int umbral = 2; 
-    
-
     cvtColor( dest, hola, COLOR_BGR2GRAY );
-    //Mat blanco(src.rows, src.cols, CV_8UC3, Scalar( 255,255,255 ));
-    
     MatIterator_< Vec3b > it, end;
     it  = hola.begin< Vec3b >( );
     end = hola.end< Vec3b >( );
-
     for(  ; it != end; ++it)
     {
         if( (*it)[0] < umbral ) { (*it)[0] = 255; }
         else                    { (*it)[0] = 0; }
     }
     cvtColor( hola, hola, COLOR_GRAY2BGR );
-}
-
-// imprime una lista de puntos 
-void imprimirListaPuntos(vector<Punto> fuentes)
-{
-    for (auto it = fuentes.begin(); it != fuentes.end(); ++it)
-      it->imprimir();
 }
 
 // verifica si un punto es viable 
@@ -533,7 +477,7 @@ bool adyacentes(vector<Punto> &puntos, Mat &img, int x , int y, bool esquinas , 
 
     return cambio;
 }
-
+// creo que todas estas funciones podrian moverse dentro de "Conjunto :v "
 // consigue un area, segun un punto inicial de forma continua, para evitar los limites de la recursion
 void conseguirArea(Area &area, Mat &img, bool esquinas,int distancia, Recorrido rec)
 {
@@ -586,32 +530,6 @@ void regiones(Mat &src, Mat &res, bool esquinas, int distancia, vector<Punto> fu
 
     cout<<endl<<"areas : "<<conj->size()<<endl;
     conj->conjuntoAImagen(res, res);
-}
-
-
-
-void diferenciaImagenes(Mat src,Mat &dest)
-{
-  Mat image = dest.clone();
-  Mat gray(image.rows, image.cols, CV_32F);
-  gray = dest.clone();
-  cout<<dest.rows<<" "<<dest.cols<<endl;
-  getchar();
-  for (size_t i = 0; i < dest.rows; i++)
-  {
-    for (size_t j = 0; j < dest.cols; j++)
-    {
-        Vec3b pixel = dest.at<Vec3b>(i, j);
-
-        if(pixel[0] == 0 && pixel[1] == 0 && pixel[2] == 0 ){
-          gray.at<uchar>(i, j) = 0;
-        }
-        else{
-          gray.at<Vec3b>(i, j) = src.at<Vec3b>(i, j);
-        }
-    }
-  }
-  imwrite("aa.jpg", gray);
 }
 
 // metodos para conseguir fuentes 
@@ -735,13 +653,11 @@ static void onMouse( int event, int x, int y, int flags, void* )
 vector<Punto> manual(Mat & img)
 {
     immg = img.clone();
-    namedWindow( "image", 1 );
+    namedWindow( "image", WINDOW_NORMAL );
 
     imshow( "image", img );
     setMouseCallback( "image", onMouse, 0 );
 
-    
-    int c = waitKey(0);
-
+    waitKey(0);
     return fuentes;
 }
