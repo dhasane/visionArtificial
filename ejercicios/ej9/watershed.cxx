@@ -1,15 +1,5 @@
-#include <iostream>
 
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkScalarToRGBPixelFunctor.h"
-#include "itkUnaryFunctorImageFilter.h"
-#include "itkVectorCastImageFilter.h"
-#include "itkVectorGradientAnisotropicDiffusionImageFilter.h"
-#include "itkWatershedImageFilter.h"
-#include "itkRescaleIntensityImageFilter.h"
-#include "itkScalarToRGBColormapImageFilter.h"
-#include "itkGradientMagnitudeImageFilter.h"
+
 
 // Run with:
 // ./WatershedImageFilter threshold level

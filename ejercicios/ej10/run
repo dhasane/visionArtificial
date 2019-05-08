@@ -1,0 +1,8 @@
+#!/bin/bash
+
+for file in textures/*
+	do
+		echo $file
+		build/TextFeaturesImage $file 200 | grep -e "Correlation" -e "Energy" -e "orientation"
+		echo "-------------------------------"	
+	done
