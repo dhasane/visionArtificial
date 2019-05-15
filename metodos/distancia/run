@@ -1,0 +1,8 @@
+#!/bin/bash
+
+IMAGEN=$1
+
+echo $IMAGEN+gris
+
+./build/otsu $IMAGEN
+./build/distancia $IMAGEN+gris $2
