@@ -43,6 +43,3 @@ MARK_AS_ADVANCED(
 ADD_EXECUTABLE( distancia distancia.cxx )
 TARGET_LINK_LIBRARIES( distancia ${OpenCV_LIBS} )
 
-ADD_EXECUTABLE( regiones regiones.cxx )
-TARGET_LINK_LIBRARIES( regiones ${OpenCV_LIBS} )
-
