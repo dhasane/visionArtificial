@@ -2,6 +2,7 @@
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/highgui.hpp"
 #include <iostream>
+
 using namespace cv;
 using namespace std;
 
@@ -73,10 +74,6 @@ int main( int argc, char* argv[] )
     //backProjection  ( src, src , 70);
 
     //otsu2( src, src );
-
-    //
-    //
-
     //*
     
     //limpiar(forma, forma, 0, 0, 1);
@@ -146,15 +143,10 @@ void agruparColores( Mat &src, Mat &res, int cortes )
     
     cout<<"salto : "<<salto<<endl;
     
-    //*
     for( int a = 0 ; a < cortes; a++)
     {
-        //cout<<salto*a<<"   "<<salto*(a+1)<<"     ---------------------"<<endl;
         for (int b = salto*a ; b < salto*(a+1) && b < 256; b++)
         {
-            //cout<<b<<"/"<<salto<<"   : "<<b/salto<<endl;
-
-            
             totalAzul[a]  += azul [b];
             totalRojo[a]  += rojo [b];
             totalVerde[a] += verde[b]; 
@@ -162,7 +154,6 @@ void agruparColores( Mat &src, Mat &res, int cortes )
             corteAzul [a] += b * azul [b];
             corteRojo [a] += b * rojo [b];
             corteVerde[a] += b * verde[b];
-
         }
     }
 
@@ -173,27 +164,6 @@ void agruparColores( Mat &src, Mat &res, int cortes )
         corteVerde[a] /= totalVerde[a];
 
     }
-
-    /*/
-    for( int a = 0 ; a < cortes; a++)
-    {
-        for (int b = salto*a ; b < salto*(a+1) && b < 256; b++)
-        {
-            totalAzul[a]  += azul [b];
-            totalRojo[a]  += rojo [b];
-            totalVerde[a] += verde[b]; 
-        }
-    }
-
-    for( int a = 0 ; a < cortes; a++)
-    {
-        for (int b = salto*a ; b < salto*(a+1) && b < 256; b++)
-        {
-            corteAzul [a] += b * azul [b] / totalAzul [a];
-            corteRojo [a] += b * rojo [b] / totalRojo [a];
-            corteVerde[a] += b * verde[b] / totalVerde[a];
-        }
-    }//*/
 
     cout<<"azul  : ";
     for(int a = 0 ; a < cortes ; a ++)
@@ -212,22 +182,15 @@ void agruparColores( Mat &src, Mat &res, int cortes )
     }
     cout<<endl;
 
-
-
     it  = res.begin< Vec3b >( );
     end = res.end< Vec3b >( );
-    //int a = 0 ;
     for(  ; it != end; ++it) // contar aparicion de cada tonalidad
     {
-        
         (*it)[0] = corteAzul [ int((*it)[0]/salto) ];
         (*it)[1] = corteVerde[ int((*it)[1]/salto) ];
         (*it)[2] = corteRojo [ int((*it)[2]/salto) ];
     }
 
-    //destroy(corteAzul);
-    //destroy(corteRojo);
-    //destroy(corteVerde);
 }
 
 void agruparGrises( Mat &src, Mat &res, int cortes )
@@ -270,14 +233,12 @@ void agruparGrises( Mat &src, Mat &res, int cortes )
             totalAzul[a]  += azul [b];
 
             corteAzul [a] += b * azul [b];
-
         }
     }
 
     for( int a = 0 ; a < cortes; a++)
     {
         corteAzul [a] /= totalAzul [a];
-
     }
 
     cout<<"azul  : ";
@@ -287,27 +248,18 @@ void agruparGrises( Mat &src, Mat &res, int cortes )
     }
     cout<<endl;
 
-
-
     it  = res.begin< Vec3b >( );
     end = res.end< Vec3b >( );
-    //int a = 0 ;
     for(  ; it != end; ++it) // contar aparicion de cada tonalidad
     {
-        
         (*it)[0] = corteAzul [ int((*it)[0]/salto) ];
     }
 
-
     cvtColor( res, res, COLOR_GRAY2BGR);
-    //destroy(corteAzul);
-    //destroy(corteRojo);
-    //destroy(corteVerde);
 }
 
 void corteInferiorUmbral(Mat & src, Mat & dst, int umbral)
 {
-    
     MatIterator_< Vec3b > it, end;
     it  = src.begin< Vec3b >( );
     end = src.end< Vec3b >( );
@@ -490,7 +442,6 @@ float encontrarUmbral(int color[])
     {
         totalcolor += color[i];
     }
-    //cout<<totalcolor<<endl;
 
     float vA  = 0;
     float cvA = 0;
@@ -506,7 +457,6 @@ float encontrarUmbral(int color[])
 
     for ( int corte  = 1 ; corte <= 255 ; corte++)
     {
-
         var(color,totalcolor, 0, corte, vA, pA);
 
         var(color,totalcolor, corte+1, 256,cvA,cpA);
@@ -525,8 +475,6 @@ float encontrarUmbral(int color[])
             varmin = varact;
         }
     }
-    //cout<<"umbral optimo en : "<<minv<<" con "<<varmin<<endl;
-
     return minv;
 }
 
@@ -548,7 +496,6 @@ void otsu(Mat &src, Mat &dst)
     }
 
     // se encuentran los umbrales 
-
     float umbral  = encontrarUmbral(azul);
 
     // se inicializan los iteradores 
