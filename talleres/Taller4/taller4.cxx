@@ -13,26 +13,6 @@
 #include <opencv2/core/utility.hpp>
 #include "opencv2/imgcodecs.hpp"
 
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkForwardFFTImageFilter.h"
-#include "itkMaskImageFilter.h"
-#include "itkFFTShiftImageFilter.h"
-#include "itkInverseFFTImageFilter.h"
-#include "itkCastImageFilter.h"
-#include "itkMinimumMaximumImageFilter.h"
-#include "itkShiftScaleImageFilter.h"
-#include "itkRescaleIntensityImageFilter.h"
-#include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkSignedDanielssonDistanceMapImageFilter.h"
-#include "itkCastImageFilter.h"
-#include "itkSignedMaurerDistanceMapImageFilter.h"
-#include "itksys/SystemTools.hxx"
-#include <sstream>
-
-typedef itk::Image<unsigned char, 2>  UnsignedCharImageType;
-typedef itk::Image<float, 2>          FloatImageType;
 using namespace cv;
 using namespace std;
 
@@ -220,21 +200,18 @@ class Area{
         void areaAImagen(Mat &img, int cantidad)
         {
             int r, g ,b ;
-            int vv = 255 *3 / cantidad * (this->id);
-            r = vv % 256;
+            int vv = 255 *3 / cantidad * this->id;
+            if ( vv > 0) r = (vv % 256)+(this->id*this->id)%256 + this->id;
             vv -= 255;
-            if ( vv > 0) g = vv % 256;
+            if ( vv > 0) g = (vv % 256)+(this->id*this->id*this->id*this->id)%256 + this->id*2;
             vv -= 255;
-            if ( vv > 0) b = vv % 256;
+            if ( vv > 0) b = (vv % 256)+(this->id*this->id*this->id*this->id*this->id)%256 + this->id*3;
             Vec3b color = Vec3b(r,g,b);
-            Mat imgFiltrada = img.clone();
+
             for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
             {
                 img.at<Vec3b>( Point(pt->x, pt->y) ) = color;
-
-                imgFiltrada.at<Vec3b>( Point(pt->x, pt->y) ) = Vec3b(255,255,255);;
             }
-
         }
 		  float distanciaDeBorde( Punto pt )
 		  {
@@ -288,7 +265,7 @@ class Area{
                     y = pt->y;
                 }
             }
-             cout<<max<<" "<<x<<" "<<y<<endl;
+             cout<<" x = "<<x<<";  y = "<<y<<endl;
 		  }
 		  void areaADistancia( Mat &img )
 		  {
@@ -315,7 +292,7 @@ class Conjunto{
 		    this->tamx = src.cols;
 		    this->tamy = src.rows;
 
-            areas = new vector<Area>();
+            areas = new vector<Area>;
             Recorrido rec(src.cols,src.rows);
             
             Area* area;
@@ -328,7 +305,6 @@ class Conjunto{
 
 
             it  = src.begin< Vec3b >( );
-            cout<<src.cols<<" "<<src.rows<<endl;
             for(int i=0; i<src.rows; i++){
                 for(int j=0; j<src.cols; j++){
                    // cout<<j<<" "<<i<<endl;
@@ -355,7 +331,6 @@ class Conjunto{
 
             auto areait = areas->begin();
             int lim = maximo*filtro;
-            cout<<"Area maxima = "<<maximo<<endl;
             vector<Area> *nuevasAreas = new vector<Area>(); 
             while(areait != areas->end()){
                 if(lim<=areait->size()){
@@ -367,15 +342,12 @@ class Conjunto{
 
             areas = nuevasAreas;
             areait = areas->begin(); 
-            int n=0;
             while(areait != areas->end()){
                 Area listaAreas = (*areait);
-                cout<<"Area "<<n<<" = "<<listaAreas.size()<<endl;
-                n++;
                 areait++;
             }
 
-            cout<<endl<<"N areas : "<<this->size()<<endl;
+           // cout<<endl<<"N areas : "<<this->size()<<endl;
         }
 
 
@@ -461,7 +433,7 @@ class Conjunto{
 				//Mat M(2,2, CV_8UC3, Scalar(0,0,255));
 				dest = cv::Scalar(0,0,0);
 
-				cout<< this-> tamx << "   " << this->tamy << endl;
+				
 				//cv::resize(dest, dest, cv::Size( this->tamx, this->tamy ) );
 		   	
 				for (auto area = areas->begin(); area != areas->end(); ++area)
@@ -483,6 +455,10 @@ class Conjunto{
             }
         }
 
+        vector<Area>* getAreas(){
+            return areas;
+        }
+
         int maximoTamArea(){
             return maximo;
         }
@@ -500,7 +476,7 @@ int main ( int argc, char** argv )
 
     if( argc < 4 )
     {
-      cout<<" ingresar : "<<argv[0]<<" (nombre imagen) ( esquinas (0-1) ) (%)"<<endl;
+      cout<<" ingresar : "<<argv[0]<<" (nombre imagen) ( esquinas (0-1) ) (porcentaje filtro)"<<endl;
       return -1;
     }
     const char* imageName =      argv[1];
@@ -541,9 +517,9 @@ int main ( int argc, char** argv )
     Mat VE(src.rows, src.cols, CV_8UC3, Scalar( 0 , 0 , 0 ));
 
     otsu(matGris,AZ,VE,RO);
-    imwrite("binaria.png",  matGris); 
+    imwrite(basename + "binaria.png",  matGris); 
 
-    src = imread( "binaria.png", IMREAD_COLOR ); 
+    src = imread( basename + "binaria.png", IMREAD_COLOR ); 
     if( src.empty() )
     {
         printf("error al abrir la imagen\n");
@@ -554,31 +530,34 @@ int main ( int argc, char** argv )
 
     cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl<< "total pixeles : "<<src.cols * src.rows<<endl;
 
-    
+    vector<Area> *areas;
     Conjunto conj( dest, (bool)esquinas , filtro);
-    
+
     conj.conjuntoAImagen( dest , dest ); 
-    cout<<"Pixeles maxima area "<<conj.maximoTamArea()<<endl;
+    areas = conj.getAreas();
+
+   
+   
 	Mat res = src.clone();
     Mat filtrada = src.clone();
+    //Se demora, pero funciona
     conj.conjuntoADistancias(res);
-    
-    vector<Area> *areas = conj.areas; 
-    int n=0;
-    for (auto area = areas->begin(); area != areas->end(); ++area)
-    {
-        cout<<n<<" ";
-        area->getCentro();
-        cout<<endl;
-        n++;
+     int n=1;
+    for(auto area = areas->begin(); area != areas->end(); ++area){
+         cout<<"Area "<<n<<": Tam = "<<area->size()<<" ;";
+         area->getCentro();
+         cout<<endl;
+         n++;
     }
+     cout<<"Pixeles maxima area "<<conj.maximoTamArea()+1<<endl;
+    
 
 
     //cout<<conj.*areas.getCentro();
 
     imwrite( basename + "Areas.jpg" , dest );
     binarizar(dest,filtrada,2);
-    imwrite("filtrada.png",  filtrada); 
+    imwrite(basename +"filtrada.png",  filtrada); 
     //distancia();
 
 
@@ -640,7 +619,6 @@ float encontrarUmbral(int color[])
     {
         totalcolor += color[i];
     }
-    cout<<totalcolor<<endl;
 
     float vA  = 0;
     float cvA = 0;
@@ -676,18 +654,17 @@ float encontrarUmbral(int color[])
             varmin = varact;
         }
     }
-    cout<<"umbral optimo en : "<<minv<<" con "<<varmin<<endl;
 
     return minv;
 }
 
 void otsu(Mat &src, Mat &AZ, Mat &VE, Mat &RO)
 {
-    // vectores de aparicion de intensidades 
+ // vectores de aparicion de intensidades 
     int verde[256] = {0};
     int rojo [256] = {0};
     int azul [256] = {0};
-    
+
     MatIterator_< Vec3b > it, end;
     it  = src.begin< Vec3b >( );
     end = src.end< Vec3b >( );
@@ -746,39 +723,5 @@ void otsu(Mat &src, Mat &AZ, Mat &VE, Mat &RO)
     }
 }
 
-
-void distancia(){
-   UnsignedCharImageType::Pointer image = UnsignedCharImageType::New();
-
-    typedef itk::ImageFileReader<UnsignedCharImageType> ReaderType;
-    ReaderType::Pointer reader = ReaderType::New();
-    reader->SetFileName("binaria.png");
-    reader->Update();
-    image = reader->GetOutput();
-
-    typedef  itk::SignedMaurerDistanceMapImageFilter< UnsignedCharImageType, FloatImageType  > SignedMaurerDistanceMapImageFilterType;
-   SignedMaurerDistanceMapImageFilterType::Pointer distanceMapImageFilter =
-     SignedMaurerDistanceMapImageFilterType::New();
-   distanceMapImageFilter->SetInput(image);
-
-  using FilterType = itk::CastImageFilter <FloatImageType, UnsignedCharImageType>;
-  FilterType::Pointer filter = FilterType::New();
-  filter->SetInput(distanceMapImageFilter->GetOutput());
-
-
-
-  using WriterType = itk::ImageFileWriter<UnsignedCharImageType>;
-  WriterType::Pointer writer= WriterType::New();
-  writer->SetFileName( "resultado1.png" );
-  writer->SetInput( filter->GetOutput() );
-  try
-  {
-    writer->Update();
-  }
-  catch( itk::ExceptionObject & error )
-  {
-    std::cerr << "Error: " << error << std::endl;
-  }
-}
 
 

@@ -11,11 +11,6 @@ PROJECT( FILTRO )
 ## ============
 
 FIND_PACKAGE( OpenCV REQUIRED )
-FIND_PACKAGE(ITK REQUIRED)
-if (ITKVtkGlue_LOADED)
-  find_package(VTK REQUIRED)
-  include(${VTK_USE_FILE})
-endif()
 #IF(ITK_FOUND)
 #  INCLUDE(${ITK_USE_FILE})
 ##ENDIF(ITK_FOUND)
@@ -44,9 +39,6 @@ MARK_AS_ADVANCED(
 ## = Programs to compile =
 ## =======================
 
-ADD_EXECUTABLE( distancia distancia.cxx )
-TARGET_LINK_LIBRARIES( distancia ${OpenCV_LIBS} ${ITK_LIBRARIES})
-
-ADD_EXECUTABLE( otsu otsu.cxx )
-TARGET_LINK_LIBRARIES( otsu ${OpenCV_LIBS} )
+ADD_EXECUTABLE( taller4 taller4.cxx )
+TARGET_LINK_LIBRARIES( taller4 ${OpenCV_LIBS})
 
