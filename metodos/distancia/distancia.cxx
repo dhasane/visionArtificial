@@ -253,19 +253,19 @@ class Area{
 		  // promedio del area -> consigue el centro del area 
 		  void getCentro()
 		  {
-			   for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
-            {
-                // img.at<Vec3b>( Point( pt->x, pt->y ) ) = distanciaDeBorde(pt);
-            }
+              for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
+              {
+                    // img.at<Vec3b>( Point( pt->x, pt->y ) ) = distanciaDeBorde(pt);
+                }
 		  }
 		  void areaADistancia( Mat &img )
 		  {
-			   int dst;
-			   for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
-            {
-					 dst = int( distanciaDeBorde( *pt ) * 255 );
-                img.at<Vec3b>( Point( pt->x, pt->y ) ) = Vec3b( dst,dst,dst) ;
-            }
+              int dst;
+              for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
+              {
+                  dst = int( distanciaDeBorde( *pt ) * 255 );
+                  img.at<Vec3b>( Point( pt->x, pt->y ) ) = Vec3b( dst,dst,dst) ;
+              }
 		  }
 
 };
@@ -408,6 +408,8 @@ class Conjunto{
 
 void binarizar(Mat & dest, Mat & hola , int umbral);
 
+void otsu(Mat &src, Mat &dst);
+
 int main ( int argc, char** argv )
 {
     if( argc < 3 )
@@ -436,6 +438,8 @@ int main ( int argc, char** argv )
 
     cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl<< "total pixeles : "<<src.cols * src.rows<<endl;
     
+    otsu( dest, dest );
+
     Conjunto conj( dest, (bool)esquinas );
 
     conj.conjuntoAImagen( dest , dest );
@@ -470,4 +474,123 @@ void binarizar(Mat & dest, Mat & hola , int umbral)
         else                    { (*it)[0] = 0; }
     }
     cvtColor( hola, hola, COLOR_GRAY2BGR );
+}
+
+
+
+// encuentra la varianza para un color y su peso respectivo 
+void var(int color[] ,int total,int liminf, int limsup,float & varianza, float & peso)
+{
+    float promedio = 0;
+    int tlocal     = 0;
+
+    varianza = 0 ;
+    peso     = 0;
+
+    for ( int a = liminf ; a < limsup ; a ++)
+    {
+        peso     += color[a];
+        promedio += a*color[a];
+        tlocal   += color[a];
+    }
+    peso     /= total;
+    promedio /= tlocal;
+    for ( int a = liminf ; a < limsup ; a ++)
+    {
+        varianza += pow((a-promedio), 2 ) + color[a];
+    }
+    
+    if (tlocal != 0)
+    {
+        varianza /= tlocal;
+    }
+    else
+    {
+        varianza  = 0;
+    }
+}
+
+// encuentra el umbral optimo, a traves del metodo de otsu 
+float encontrarUmbral(int color[])
+{
+    int totalcolor = 0;
+
+    for ( int i  = 0 ; i <= 255 ; i++)
+    {
+        totalcolor += color[i];
+    }
+
+    float vA  = 0;
+    float cvA = 0;
+
+    float pA  = 0;
+    float cpA = 0;
+
+    float minv   = 0 ;
+    float varmin = 0 ;
+
+    float actv   = 0 ;
+    float varact = 0 ;
+
+    for ( int corte  = 1 ; corte <= 255 ; corte++)
+    {
+        var(color,totalcolor, 0, corte, vA, pA);
+
+        var(color,totalcolor, corte+1, 256,cvA,cpA);
+        
+        actv   = corte;
+        varact = pA*vA + cpA*cvA;
+
+        if ( corte == 1 )
+        {
+            minv   = actv;
+            varmin = varact;
+        }
+        else if ( varact < varmin)
+        {
+            minv   = actv;
+            varmin = varact;
+        }
+    }
+    return minv;
+}
+
+// solo sirve para un color, esto porque debe estar la imagen en blanco y negro
+void otsu(Mat &src, Mat &dst)
+{
+    cvtColor( src, dst, COLOR_RGB2GRAY);
+
+    // vectores de aparicion de intensidades 
+    int azul [256] = {0};
+    
+    MatIterator_< Vec3b > it, end;
+    it  = dst.begin< Vec3b >( );
+    end = dst.end< Vec3b >( );
+
+    for(  ; it != end; ++it) // contar aparicion de cada tonalidad
+    {
+        azul [(*it)[0]] += 1;
+    }
+
+    // se encuentran los umbrales 
+    float umbral  = encontrarUmbral(azul);
+
+    // se inicializan los iteradores 
+    it  = dst.begin< Vec3b >( );
+    end = dst.end< Vec3b >( );
+
+    // se recorre la imagen original y en caso de una intensidad ser menor al umbral especifico, se guarda 0, de lo contrario 255 
+    for(  ; it != end; ++it)
+    {
+        if ( (*it)[0] > umbral  ) { (*it)[0] = 255 ; } // azul
+        else                      { (*it)[0] = 0   ; }
+
+        if ( (*it)[1] > umbral  ) { (*it)[0] = 255 ; } // verde 
+        else                      { (*it)[0] = 0   ; }
+
+        if ( (*it)[2] > umbral )  { (*it)[0] = 255 ; } // rojo 
+        else                      { (*it)[0] = 0   ; }
+    }
+
+    cvtColor( dst, dst, COLOR_GRAY2RGB);
 }
