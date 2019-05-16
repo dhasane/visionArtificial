@@ -277,10 +277,18 @@ class Area{
 		  // promedio del area -> consigue el centro del area 
 		  void getCentro()
 		  {
+              float max = 0;
+              int x;
+              int y;
 			   for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
             {
-                //cout<<distanciaDeBorde(pt)<<endl;
+                if(distanciaDeBorde(*pt)>max){
+                    max = distanciaDeBorde(*pt);
+                    x = pt->x;
+                    y = pt->y;
+                }
             }
+             cout<<max<<" "<<x<<" "<<y<<endl;
 		  }
 		  void areaADistancia( Mat &img )
 		  {
@@ -295,6 +303,7 @@ class Area{
 };
 
 class Conjunto{
+    public:
     vector<Area> *areas; 
 	int tamx;
 	int tamy;
@@ -488,6 +497,7 @@ void var(int color[] ,int total,int liminf, int limsup,float & varianza, float &
 
 int main ( int argc, char** argv )
 {
+
     if( argc < 4 )
     {
       cout<<" ingresar : "<<argv[0]<<" (nombre imagen) ( esquinas (0-1) ) (%)"<<endl;
@@ -553,10 +563,23 @@ int main ( int argc, char** argv )
     Mat filtrada = src.clone();
     conj.conjuntoADistancias(res);
     
+    vector<Area> *areas = conj.areas; 
+    int n=0;
+    for (auto area = areas->begin(); area != areas->end(); ++area)
+    {
+        cout<<n<<" ";
+        area->getCentro();
+        cout<<endl;
+        n++;
+    }
+
+
+    //cout<<conj.*areas.getCentro();
+
     imwrite( basename + "Areas.jpg" , dest );
     binarizar(dest,filtrada,2);
     imwrite("filtrada.png",  filtrada); 
-    distancia();
+    //distancia();
 
 
 	imwrite( basename + "Distancias.jpg" , res ) ;
