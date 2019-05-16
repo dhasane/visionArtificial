@@ -43,6 +43,6 @@ MARK_AS_ADVANCED(
 ADD_EXECUTABLE( distancia distancia.cxx )
 TARGET_LINK_LIBRARIES( distancia ${OpenCV_LIBS} )
 
-ADD_EXECUTABLE( otsu otsu.cxx )
-TARGET_LINK_LIBRARIES( otsu ${OpenCV_LIBS} )
+#ADD_EXECUTABLE( otsu otsu.cxx )
+#TARGET_LINK_LIBRARIES( otsu ${OpenCV_LIBS} )
 
