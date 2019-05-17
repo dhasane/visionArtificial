@@ -427,7 +427,7 @@ int main ( int argc, char** argv )
     Mat hola;
     binarizar(dest,hola,2);
     imwrite( basename + "Etiqueta.jpg" , hola );
-    imwrite( basename + "Segmentada.jpg" , src-hola );
+    imwrite( basename + "Segmentada.jpg" , src*hola );
     return 0;
 }
 
@@ -439,8 +439,8 @@ void binarizar(Mat & dest, Mat & hola , int umbral)
     end = hola.end< Vec3b >( );
     for(  ; it != end; ++it)
     {
-        if( (*it)[0] < umbral ) { (*it)[0] = 255; }
-        else                    { (*it)[0] = 0; }
+        if( (*it)[0] < umbral ) { (*it)[0] = 0; }
+        else                    { (*it)[0] = 255; }
     }
     cvtColor( hola, hola, COLOR_GRAY2BGR );
 }

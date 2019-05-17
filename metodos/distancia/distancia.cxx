@@ -115,10 +115,12 @@ class Recorrido{
 
 class Area{
 
+
     vector<Punto> *puntos;  // puntos del area
     deque<Punto> *posibles;// posibles puntos del area :D
-	 vector<Punto> *borde;   // puntos del borde
+	vector<Punto> *borde;   // puntos del borde
     int id;
+    Punto *centroPromedio;
 
     public:
         
@@ -128,7 +130,9 @@ class Area{
             puntos = new vector<Punto>();
             posibles = new deque<Punto>();
             puntos->push_back(p);
-				borde = new vector<Punto>();
+			borde = new vector<Punto>();
+
+            centroPromedio=NULL;
         }
 
         int size()
@@ -212,61 +216,121 @@ class Area{
                 img.at<Vec3b>( Point(pt->x, pt->y) ) = color;
             }
         }
-		  float distanciaDeBorde( Punto pt )
-		  {
-			   int distMin = 0; // distancia minima al borde
-				int distMax = 0; // distancia maxima al borde
-				int distAct = 0; // distancia hasta el punto mirado actualmente 
-				bool primero = true;
-			   
-				for( auto bd = borde->begin() ; bd != borde->end(); ++bd)
-				{
-					 //distAct = distanciaEuclidiana
-					 distAct = sqrt(pow((pt.x - bd->x), 2) + pow((pt.y - bd->y), 2));
 
-					 if ( primero ) 
-					 {
-						  distMin = distAct;
-						  distMax = distAct;
-						  primero = false;
-					 }
-					 else
-					 {
-						  if ( distMax < distAct)
-						  {
-							   distMax = distAct;
-						  }
-					 	  if ( distAct < distMin )
-					 	  {
-							   distMin = distAct;
-					 	  }
-					 }
+        float distanciaDeBorde( Punto pt )
+        {
+            int distMin = 0; // distancia minima al borde
+            int distMax = 0; // distancia maxima al borde
+            int distAct = 0; // distancia hasta el punto mirado actualmente 
+            bool primero = true;
+            
+            for( auto bd = borde->begin() ; bd != borde->end(); ++bd)
+            {
+                    //distAct = distanciaEuclidiana
+                    distAct = sqrt(pow((pt.x - bd->x), 2) + pow((pt.y - bd->y), 2));
 
-				}
-				// esto podria ser mejor cambiarlo a que divida por la distancia desde el centro
-				float val = distMin;
-				val /= distMax;
-				//cout << distMin << " " << distMax <<" "<< val <<endl;
-				return val;
-		  }
+                    if ( primero ) 
+                    {
+                        distMin = distAct;
+                        distMax = distAct;
+                        primero = false;
+                    }
+                    else
+                    {
+                        if ( distMax < distAct)
+                        {
+                            distMax = distAct;
+                        }
+                        if ( distAct < distMin )
+                        {
+                            distMin = distAct;
+                        }
+                    }
+
+            }
+            // esto podria ser mejor cambiarlo a que divida por la distancia desde el centro
+            //float val = distMin;
+            
+            //val /= distMax;
+            return distMin;
+        }
+
+
+        float distanciasDeBorde( Punto pt )
+        {
+            
+            int distMax = 0; // distancia maxima al borde
+            int distAct = 0; // distancia hasta el punto mirado actualmente 
+            bool primero = true;
+            
+            for( auto bd = borde->begin() ; bd != borde->end(); ++bd)
+            {
+                    //distAct = distanciaEuclidiana
+                    distAct = sqrt(pow((pt.x - bd->x), 2) + pow((pt.y - bd->y), 2));
+
+                    if ( primero ) 
+                    {
+                        distMax = distAct;
+                        primero = false;
+                    }
+                    else
+                    {
+                        if ( distMax < distAct)
+                        {
+                            distMax = distAct;
+                        }
+                    }
+
+            }
+
+            cout<<"   "<<distMax<<endl;
+            
+            return distMax;
+        }
 		  
-		  // promedio del area -> consigue el centro del area 
-		  void getCentro()
-		  {
-              for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
-              {
-                    // img.at<Vec3b>( Point( pt->x, pt->y ) ) = distanciaDeBorde(pt);
+        // promedio del area -> consigue el centro del area 
+        void getCentro( )
+        {
+            float px;
+            float py;
+            for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
+            {
+                px += pt->x ; 
+                py += pt->y ;
+            }
+            px /= puntos->size();
+            py /= puntos->size();
+            
+            this->centroPromedio = new Punto( px , py , (0,0,0 ) );
+        }
+        void areaADistancia( Mat &img )
+        {
+            getCentro();
+
+            float distmax = distanciasDeBorde(*centroPromedio) + 5;
+            
+            float dst;
+            int idst;
+            if (centroPromedio != NULL)
+            {
+                for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
+                {
+
+                    dst = distanciaDeBorde( *pt ) ;
+                    dst *= 255;
+                    dst /= distmax ;
+                    
+
+                    idst = int(dst);
+                    img.at<Vec3b>( Point( pt->x, pt->y ) ) = Vec3b( idst,idst,idst ) ;
                 }
-		  }
-		  void areaADistancia( Mat &img )
-		  {
-              int dst;
-              for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
-              {
-                  dst = int( distanciaDeBorde( *pt ) * 255 );
-                  img.at<Vec3b>( Point( pt->x, pt->y ) ) = Vec3b( dst,dst,dst) ;
-              }
-		  }
+
+                img.at<Vec3b>( Point( centroPromedio->x, centroPromedio->y) ) = Vec3b( 0 ,0 ,255);
+            
+            }
+            
+            
+        }
 
 };
 
@@ -309,7 +373,6 @@ class Conjunto{
             }
             cout<<endl<<"areas : "<<this->size()<<endl;
         }
-
 
         // verifica si un punto es viable 
         void mirarPunto(vector<Punto> &puntos, Mat &img, int x, int y, Recorrido rec)
@@ -367,11 +430,13 @@ class Conjunto{
             }    
         }
 
-
-
         void agregar(Area area)
         {
-            areas->push_back( area );
+            if ( area.size() > 0)
+            {
+                areas->push_back( area );
+            }
+            
         }
 
         int size()
@@ -379,21 +444,17 @@ class Conjunto{
             return areas->size();
         }
 		  
-		  void conjuntoADistancias( Mat &dest )
-		  {
-			   //dest = 
-				//Mat M(2,2, CV_8UC3, Scalar(0,0,255));
-				dest = cv::Scalar(0,0,0);
-
-				cout<< this-> tamx << "   " << this->tamy << endl;
-				//cv::resize(dest, dest, cv::Size( this->tamx, this->tamy ) );
-		   	
-				for (auto area = areas->begin(); area != areas->end(); ++area)
+        void conjuntoADistancias( Mat &dest )
+        {
+            dest = cv::Scalar(0,0,0);
+            cout<< this-> tamx << "   " << this->tamy << endl;
+            
+            for (auto area = areas->begin(); area != areas->end(); ++area)
             {
                 area->areaADistancia( dest );
             }
+        }
 
-		  }
         void conjuntoAImagen(Mat &img, Mat &res)
         {
             res = img.clone();
@@ -410,19 +471,28 @@ void binarizar(Mat & dest, Mat & hola , int umbral);
 
 void otsu(Mat &src, Mat &dst);
 
+void limpiar(Mat &img,Mat &res, int tipo , int tam);
+
 int main ( int argc, char** argv )
 {
-    if( argc < 3 )
+    if( argc < 4 )
     {
-      cout<<" ingresar : "<<argv[0]<<" (nombre imagen) ( esquinas (0-1) )"<<endl;
+      cout<<" ingresar : "<<argv[0]<<" (nombre imagen) ( esquinas (0-1) ) ( tamaño minimo ) "<<endl;
       return -1;
     }
     const char* imageName =      argv[1];
     int         esquinas  = atoi(argv[2]);
+    int         tam       = atoi(argv[3]);
 
     if ( esquinas != 0 && esquinas != 1 )
     {
         printf("esquinas debe ser 1 o 0\n");
+        return -1;
+    }
+
+    if ( tam <= 0 )
+    {
+        printf(" el tamaño del area minima debe ser mayor a 0\n");
         return -1;
     }
 
@@ -438,15 +508,21 @@ int main ( int argc, char** argv )
 
     cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl<< "total pixeles : "<<src.cols * src.rows<<endl;
     
+
+    // void limpiar(Mat &img,Mat &res, int tipoero, int tipodil, int tam);
+
+    limpiar(dest, dest , 2 , tam );
+
     otsu( dest, dest );
 
     Conjunto conj( dest, (bool)esquinas );
 
     conj.conjuntoAImagen( dest , dest );
 	 
-	 cout <<endl << " distancias " << endl << endl;
-	 Mat res = src.clone();
-	 conj.conjuntoADistancias( res );
+    cout <<endl << " distancias " << endl << endl;
+    Mat res = src.clone();
+    
+    conj.conjuntoADistancias( res );
 
     std::string basename = "";
     
@@ -454,11 +530,8 @@ int main ( int argc, char** argv )
     getline( ss, basename, '.' );
 
     imwrite( basename + "Areas.jpg" , dest );
-    Mat hola;
-    binarizar(dest,hola,2);
-    imwrite( basename + "Etiqueta.jpg" , hola );
 
-	 imwrite( basename + "Distancias.jpg" , res ) ;
+    imwrite( basename + "Distancias.jpg" , res ) ;
     return 0;
 }
 
@@ -475,8 +548,6 @@ void binarizar(Mat & dest, Mat & hola , int umbral)
     }
     cvtColor( hola, hola, COLOR_GRAY2BGR );
 }
-
-
 
 // encuentra la varianza para un color y su peso respectivo 
 void var(int color[] ,int total,int liminf, int limsup,float & varianza, float & peso)
@@ -553,6 +624,40 @@ float encontrarUmbral(int color[])
         }
     }
     return minv;
+}
+
+void erocion( Mat &img, Mat &src, int erosion_elem, int erosion_size )
+{
+    int erosion_type;
+    if( erosion_elem == 0 ){ erosion_type = MORPH_RECT; }
+    else if( erosion_elem == 1 ){ erosion_type = MORPH_CROSS; }
+    else if( erosion_elem == 2) { erosion_type = MORPH_ELLIPSE; }
+
+    Mat element = getStructuringElement( erosion_type,
+                                        Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                                        Point( erosion_size, erosion_size ) );
+
+    erode( img, src, element );
+}
+
+void dilatar( Mat &img,Mat &src, int dilation_elem, int dilation_size )
+{
+  int dilation_type;
+  if( dilation_elem == 0 ){ dilation_type = MORPH_RECT; }
+  else if( dilation_elem == 1 ){ dilation_type = MORPH_CROSS; }
+  else if( dilation_elem == 2) { dilation_type = MORPH_ELLIPSE; }
+
+  Mat element = getStructuringElement( dilation_type,
+                                       Size( 2*dilation_size + 1, 2*dilation_size+1 ),
+                                       Point( dilation_size, dilation_size ) );
+  /// Apply the dilation operation
+  dilate( img , src, element );
+}
+
+void limpiar(Mat &img,Mat &res, int tipo , int tam)
+{
+    erocion(img ,res , tipo , tam );
+    dilatar(res ,res , tipo , tam );
 }
 
 // solo sirve para un color, esto porque debe estar la imagen en blanco y negro
