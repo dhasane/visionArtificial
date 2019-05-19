@@ -1,0 +1,12 @@
+
+
+DIR=$1
+
+# para poder hacer pruebas con muchas imagenes de una 
+
+for file in  $DIR/*.j*g 
+do
+	echo ./build/regiones $file $2 $3 $4
+	./build/regiones $file $2 $3 $4
+
+done

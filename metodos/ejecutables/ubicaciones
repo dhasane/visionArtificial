@@ -1,0 +1,12 @@
+../otsu/build/otsu
+../watershed/build/water2
+../watershed/build/water
+../backProjection/build/bp
+../backProjection/build/bping
+../fourier/Fourier-ITK/build/FilterInFourier
+../fourier/Fourier-ITK/build/FourierTransform
+../distancia/build/distancia
+../bordes/build/bordes
+../limpiar/build/limpiar
+../autoshed/build/water
+../regiones/build/regiones

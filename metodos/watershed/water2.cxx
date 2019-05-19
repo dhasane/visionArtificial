@@ -50,21 +50,21 @@ int main(int, char** argv)
     Mat bw;
     cvtColor(src, bw, COLOR_BGR2GRAY);
     threshold(bw, bw, 40, 255, THRESH_BINARY | THRESH_OTSU);
-    imshow("Binary Image", bw);
+    imwrite("BinaryImage.jpg", bw);
     // Perform the distance transform algorithm
     Mat dist;
     distanceTransform(bw, dist, DIST_L2, 3);
     // Normalize the distance image for range = {0.0, 1.0}
     // so we can visualize and threshold it
     normalize(dist, dist, 0, 1., NORM_MINMAX);
-    imshow("Distance Transform Image", dist);
+    imwrite("DistanceTransformImage.jpg", dist);
     // Threshold to obtain the peaks
     // This will be the markers for the foreground objects
     threshold(dist, dist, .4, 1., THRESH_BINARY);
     // Dilate a bit the dist image
     Mat kernel1 = Mat::ones(3, 3, CV_8UC1);
     dilate(dist, dist, kernel1);
-    imshow("Peaks", dist);
+    imwrite("Peaks.jpg", dist);
 
     
     // Create the CV_8U version of the distance image
@@ -89,7 +89,7 @@ int main(int, char** argv)
     Mat mark = Mat::zeros(markers.size(), CV_8UC1);
     markers.convertTo(mark, CV_8UC1);
     bitwise_not(mark, mark);
-    imshow("Markers_v2", mark); 
+    imwrite("Markers_v2.jpg", mark); 
     // uncomment this if you want to see how the mark
     // image looks like at that point
     // Generate random colors
@@ -116,7 +116,7 @@ int main(int, char** argv)
         }
     }
     // Visualize the final image
-    imshow("Final Result", dst);
+    imwrite("FinalResult.jpg", dst);
 
     //*/
 

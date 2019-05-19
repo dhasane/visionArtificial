@@ -184,37 +184,6 @@ Mat canny(Mat img)
 
   cv::Canny(dst,dst,lowTh,highTh);       // Canny Edge Image
 
-  /*
-  Mat_<float> gauss(3,3);
-  gauss  << 1, 1, 1,
-            1, 1, 1,
-            1, 1, 1;
-  gauss /= 9;
-  dst = aplicarKernel(img, gauss);
-  cout<<gauss<<endl;
-
-  float val2 = 0.25;
-  Mat_<float> sobelx(3,3);
-  sobelx <<   val2,   0,   -val2,
-            2*val2,   0, -2*val2,
-              val2,   0,   -val2;
-  cout<<sobelx<<endl;
-
-  dst = aplicarKernel(dst, sobelx);
-
-  Mat_<float> sobely(3,3);
-  sobely << -val2, -2*val2,  -val2,
-                0,       0,      0,
-             val2,  2*val2,   val2;
-
-  dst = aplicarKernel(dst, sobely);
-
-  cout<<sobely<<endl;
-  //*/
-  // aqui hace falta la supresion no maximal :v
-
-  // binarisar
-
   return dst.clone();
 }
 

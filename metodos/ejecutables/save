@@ -1,0 +1,20 @@
+#!/bin/bash
+
+DOC='exe'
+
+NOMBRES=$(<ubicaciones)
+
+if [ -d "$DOC" ]
+	then
+		echo "carpeta $DOC ya existente"
+	else
+		mkdir $DOC
+		echo "carpeta $DOC creada"
+	fi
+
+
+for ff in $NOMBRES
+	do
+		echo $ff
+		cp -r $ff $DOC
+	done
