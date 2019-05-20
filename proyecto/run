@@ -8,7 +8,7 @@ DIR=$1
 
 for file in  $DIR/*.j*g 
 do
-	echo ./build/caras $file
-	./build/caras $file
+	echo ./build/cara $file
+	./build/cara $file
 
 done

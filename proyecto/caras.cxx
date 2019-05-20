@@ -42,19 +42,21 @@ int main( int argc, char* argv[] )
 
     Mat res = src.clone();
     
-	 // bordes o areas -------------- 
-    Bordes bd;
-    //src = bd.canny(src);
-    bd.todos(src);
-    imwrite(basename+"Filtroproyecto.jpg", src );  
+	// bordes o areas --------------------------------------------------------------------
     
-	 // distancias -----------------
-	 Conjunto conj( src, true );
-	 conj.conjuntoAImagen( src , src );
+	Bordes bd;
+    //src = bd.canny(src);
+    //bd.todos(src);
+    //imwrite(basename+"Filtroproyecto.jpg", src );  
+    
+	// distancias ------------------------------------------------------------------------
+
+	//Conjunto conj( src, true );
+	//conj.conjuntoAImagen( src , src );
     
     //GaussianBlur( src, src, Size( 7, 7), 0, 0 );//applying Gaussian filter 
     
-	 // buscar por similaridad ----
+	// buscar por similaridad ------------------------------------------------------------
 
 
 

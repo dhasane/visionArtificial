@@ -160,9 +160,6 @@ class Area{
 
         bool insertar(Punto p )
         {
-            //Vec3b bla = Vec3b(255,255,255);
-            //int ye =  p.color == bla ? 1 : 0;
-            
             if ( p.color == BLANCO )
             {
                 puntos->push_back( p );
@@ -226,7 +223,6 @@ class Area{
             
             for( auto bd = borde->begin() ; bd != borde->end(); ++bd)
             {
-                    //distAct = distanciaEuclidiana
                     distAct = sqrt(pow((pt.x - bd->x), 2) + pow((pt.y - bd->y), 2));
 
                     if ( primero ) 
@@ -249,43 +245,16 @@ class Area{
 
             }
             // esto podria ser mejor cambiarlo a que divida por la distancia desde el centro
-            //float val = distMin;
             
-            //val /= distMax;
-            return distMin;
-        }
+			if ( distMin == 0 || distMax == 0 )
+			{
+				return 0;
+			}
 
-
-        float distanciasDeBorde( Punto pt )
-        {
-            
-            int distMax = 0; // distancia maxima al borde
-            int distAct = 0; // distancia hasta el punto mirado actualmente 
-            bool primero = true;
-            
-            for( auto bd = borde->begin() ; bd != borde->end(); ++bd)
-            {
-                    //distAct = distanciaEuclidiana
-                    distAct = sqrt(pow((pt.x - bd->x), 2) + pow((pt.y - bd->y), 2));
-
-                    if ( primero ) 
-                    {
-                        distMax = distAct;
-                        primero = false;
-                    }
-                    else
-                    {
-                        if ( distMax < distAct)
-                        {
-                            distMax = distAct;
-                        }
-                    }
-
-            }
-
-            cout<<"   "<<distMax<<endl;
-            
-            return distMax;
+			float val = distMin;
+            val /= distMax;
+				
+            return val ;
         }
 		  
         // promedio del area -> consigue el centro del area 
@@ -303,35 +272,34 @@ class Area{
             
             this->centroPromedio = new Punto( px , py , (0,0,0 ) );
         }
-        void areaADistancia( Mat &img )
+		        
+		float areaADistancia( Mat &img )
         {
             getCentro();
-
-            float distmax = distanciasDeBorde(*centroPromedio) + 5;
-            
             float dst;
             int idst;
+
+			float forma = 0;
+
             if (centroPromedio != NULL)
             {
+				cout << this->id << "   " << this->size() << endl;
                 for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
                 {
-
                     dst = distanciaDeBorde( *pt ) ;
                     dst *= 255;
-                    dst /= distmax ;
-                    
-
                     idst = int(dst);
                     img.at<Vec3b>( Point( pt->x, pt->y ) ) = Vec3b( idst,idst,idst ) ;
+
+					dst /= puntos->size();
+                    forma += dst;
                 }
-
-                img.at<Vec3b>( Point( centroPromedio->x, centroPromedio->y) ) = Vec3b( 0 ,0 ,255);
-            
-            }
-            
-            
+                //img.at<Vec3b>( Point( centroPromedio->x, centroPromedio->y) ) = Vec3b( 0 ,0 ,255);
+            	
+			}
+			
+			return forma;
         }
-
 };
 
 class Conjunto{
@@ -451,23 +419,30 @@ class Conjunto{
             
             for (auto area = areas->begin(); area != areas->end(); ++area)
             {
-                area->areaADistancia( dest );
+				if ( area->size( ) > 2 )
+				{
+					float val = area->areaADistancia( dest ) ;
+
+					if ( val != 0 ) 
+					{
+						cout << val << endl;
+					}
+				}
             }
         }
 
         void conjuntoAImagen(Mat &img, Mat &res)
         {
             res = img.clone();
-            //res = cv::Scalar(255,255,255);
             res = cv::Scalar(0,0,0);
             for (auto area = areas->begin(); area != areas->end(); ++area)
             {
-                area->areaAImagen(res, this->size() );
+                area->areaAImagen( res, this->size() );
             }
         }
 };
 
-void binarizar(Mat & dest, Mat & hola , int umbral);
+void binarizar(Mat & dest, Mat & hola , int umbral, int tope, int base );
 
 void otsu(Mat &src, Mat &dst);
 
@@ -497,33 +472,48 @@ int main ( int argc, char** argv )
     }
 
     Mat src;
-    src = imread( imageName, IMREAD_COLOR ); 
+    src = imread( imageName , IMREAD_COLOR ); 
+	//src = imread( imageName , IMREAD_GRAYSCALE);
     if( src.empty() )
     {
         printf("error al abrir la imagen\n");
         return -1;
     }
  
-    Mat dest = src.clone();
 
     cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl<< "total pixeles : "<<src.cols * src.rows<<endl;
     
+    //cvtColor( src, src, COLOR_BGR2GRAY );
+	binarizar( src , src , 70, 0 , 255);
+    //otsu( src , src );
+    
+	imwrite( "byn.jpg" , src );
 
-    // void limpiar(Mat &img,Mat &res, int tipoero, int tipodil, int tam);
+	limpiar(src, src , 2 , tam );
 
-    limpiar(dest, dest , 2 , tam );
+	imwrite( "bynlimpia.jpg" , src );
 
-    otsu( dest, dest );
+	//return 0;
+	
 
-    Conjunto conj( dest, (bool)esquinas );
+    Conjunto conj( src, (bool)esquinas );
+	
+	Mat img1;
+    conj.conjuntoAImagen( src, img1 );
+	
+	imwrite( "prueba.jpg" , img1 ) ;
 
-    conj.conjuntoAImagen( dest , dest );
-	 
+	
     cout <<endl << " distancias " << endl << endl;
     Mat res = src.clone();
     
     conj.conjuntoADistancias( res );
+	
+	imwrite( "dist.jpg" , res ) ; 
 
+	return 0;
+	/*
+	cout << " holaaa " << endl;
     std::string basename = "";
     
     std::stringstream ss( argv[ 1 ] );
@@ -532,10 +522,11 @@ int main ( int argc, char** argv )
     imwrite( basename + "Areas.jpg" , dest );
 
     imwrite( basename + "Distancias.jpg" , res ) ;
+	// */
     return 0;
 }
 
-void binarizar(Mat & dest, Mat & hola , int umbral)
+void binarizar(Mat & dest, Mat & hola , int umbral, int tope, int base )
 {
     cvtColor( dest, hola, COLOR_BGR2GRAY );
     MatIterator_< Vec3b > it, end;
@@ -543,8 +534,8 @@ void binarizar(Mat & dest, Mat & hola , int umbral)
     end = hola.end< Vec3b >( );
     for(  ; it != end; ++it)
     {
-        if( (*it)[0] < umbral ) { (*it)[0] = 255; }
-        else                    { (*it)[0] = 0; }
+        if( (*it)[0] < umbral ) { (*it)[0] = tope; }
+        else                    { (*it)[0] = base; }
     }
     cvtColor( hola, hola, COLOR_GRAY2BGR );
 }
