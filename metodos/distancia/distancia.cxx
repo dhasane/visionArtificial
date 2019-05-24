@@ -494,7 +494,11 @@ int main ( int argc, char** argv )
     cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl<< "total pixeles : "<<src.cols * src.rows<<endl;
     
     //cvtColor( src, src, COLOR_BGR2GRAY );
+<<<<<<< HEAD
 	binarizar( src , src , 130, 0 , 255);
+=======
+	binarizar( src , src , 70, 255, 0);
+>>>>>>> 13f3a650e49f9e1ca069efc5b7caccaaedcd776b
     //otsu( src , src );
     
 	imwrite( "byn.jpg" , src );

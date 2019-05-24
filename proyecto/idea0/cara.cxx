@@ -1,4 +1,13 @@
+#include "opencv2/imgproc.hpp"
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/highgui.hpp"
+#include <iostream>
 
+using namespace cv;
+using namespace std;
+
+// todas las funciones, de ser necesario, convierten la imagen a gris, y al final lo retornan a bgr, para evitar complicaciones 
+// la imagen al ser retornada por una funcion, siempre va a ser bgr 
 
 // umbralizado 
 // back projection
@@ -31,8 +40,63 @@ void agruparColores( Mat &src, Mat &res, int cortes );
 // igual pero con grises
 void agruparGrises( Mat &src, Mat &res, int cortes );
 
+int main( int argc, char* argv[] )
+{
+    CommandLineParser parser( argc, argv, "{@input |  | input image}" );
+    Mat src = imread( parser.get<String>( "@input" ) );
+    
+    if( src.empty() )
+    {
+        cout << "Could not open or find the image!\n" << endl;
+        cout << "Usage: " << argv[0] << " <Input image>" << endl;
+        return -1;
+    }
+    
+    corteInferiorUmbral(src,src,240);
+    agruparColores(src,src,3);
+    //agruparGrises(src,src,4);
+
+    Mat hist;
+
+    Mat res = src.clone();
 
 
+
+    histograma(src,hist);
+    
+    otsu( src, src );
+    
+    //GaussianBlur( src, src, Size( 7, 7), 0, 0 );//applying Gaussian filter 
+    /*
+    //suavisarPromedio( forma, forma , 9 );
+    
+    //suavisarExp(forma, forma);
+    //backProjection  ( src, src , 70);
+    //otsu2( src, src );
+    //*
+    
+    //limpiar(forma, forma, 0, 0, 1);
+    suavisarExp(forma, forma);
+    
+    backProjection  ( res,res , 70);
+    
+    //*/
+    // -----------------------------------------
+
+    res -= src ;
+
+    std::stringstream ss( argv[ 1] );
+    std::string basename;
+    getline( ss, basename, '.' );
+
+    
+    imwrite(basename+"proyectohistograma.jpg", hist );
+
+    imwrite(basename+"proyecto.jpg", src );    
+    imwrite(basename+"proyectoForma.jpg", res );
+
+    return 0;
+}
 
 void agruparColores( Mat &src, Mat &res, int cortes )
 {
@@ -453,7 +517,6 @@ void otsu(Mat &src, Mat &dst)
     cvtColor( dst, dst, COLOR_GRAY2RGB);
 }
 
-// tres colores
 void otsu2(Mat &src, Mat &res)
 {
     res = src.clone();
@@ -497,245 +560,3 @@ void otsu2(Mat &src, Mat &res)
     }
 
 }
-
-
-class Bordes{
-
-    public:
-
-    Bordes() {}
-
-    Mat aplicarKernel(Mat img, Mat kernel)
-    {
-        cv::Mat dst;
-
-        Point anchor = Point( -1, -1 );
-        double delta = 0;
-        int ddepth = -1;
-
-        filter2D(img, dst , ddepth , kernel , anchor, delta, BORDER_DEFAULT );
-        cout<<kernel<<endl;
-        return dst.clone();
-    }
-
-    Mat gauss(Mat img)
-    {
-        Mat dst;
-
-        Mat_<float> gauss(3,3);
-        //gauss  << 3, 2, 3,
-        //          2, 1, 2,
-        //         3, 2, 3;
-        //gauss /= 21;
-
-        gauss  << 1, 1, 1,
-                    1, 1, 1,
-                    1, 1, 1;
-        gauss /= 9;
-
-        dst = aplicarKernel(img,gauss);
-        // filter2D(img, dst , ddepth , gauss , anchor, delta, BORDER_DEFAULT );
-        cout<<gauss<<endl;
-        
-        MatIterator_< Vec3b > it, end, it2, end2;
-        
-        it   = img.begin< Vec3b >( );
-        end  = img.end< Vec3b >( );
-
-        it2  = dst.begin< Vec3b >( );
-        end2 = dst.end< Vec3b >( );
-
-        for(  ; it != end, it2 != end2; ++it, ++it2)
-        {
-            *it2 -= *it ;
-        }
-
-        return dst.clone();
-    }
-
-    Mat difSeparada(Mat img)
-    {
-        cv::Mat dst;
-        Mat_<float> diferencia(3,3);
-        diferencia << 0, -1,  0,
-                        1,  0, -1,
-                        0,  1,  0;
-
-        dst = aplicarKernel( img, diferencia );
-
-        return dst.clone();
-    }
-
-    Mat roberts(Mat img)
-    {
-        cv::Mat dst;
-        Mat_<float> diferencia(3,3);
-        diferencia << -1,  0, -1,
-                        0,  2,  0,
-                        0,  0,  0;
-        //diferencia /= 2;
-
-        dst = aplicarKernel( img, diferencia );
-
-        return dst.clone();
-    }
-
-    Mat difPixeles(Mat img)
-    {
-        cv::Mat dst;
-        Mat_<float> diferencia(3,3);
-        diferencia <<  0,  -1,   0,
-                        0,   2,  -1,
-                        0,   0,   0;
-
-        dst = aplicarKernel( img, diferencia );
-
-        return dst.clone();
-    }
-
-    Mat prueba(Mat img)
-    {
-        cv::Mat dst;
-
-        //int tam = 7;
-        int tam = 3;
-        Mat_<float> diferencia(tam,tam);
-        
-        //*/
-
-        /*/
-        diferencia <<  1 , 0 , -1 ,
-                        0 , 0 ,  0 ,
-                        -1 , 0 ,  1 ;
-        */
-
-        /*
-        diferencia << -1 , 0 , -1 ,
-                        0 , 0 ,  0 ,
-                        -1 , 0 ,  3 ;
-        */
-
-        /*
-        diferencia << -1 , 1 , -1 ,
-                        1 , 0 ,  1 ,
-                        -1 , 1 , -1 ;
-        */
-        /*
-        diferencia << -1 ,  2 , -1 ,
-                        2 , -4 ,  2 ,
-                        -1 ,  2 , -1 ;
-        */
-        diferencia <<  2 , -1 ,  2 ,
-                      -1 , -4 , -1 ,
-                       2 , -1 ,  2 ;
-
-        //diferencia /= 2;
-        dst = aplicarKernel( img, diferencia );
-
-        return dst.clone();
-    }
-
-    Mat pruebaCirc(Mat img)
-    {
-        cv::Mat dst;
-
-        int tam = 7;
-        Mat_<float> diferencia(tam,tam);
-        
-        diferencia <<  4 ,  4 ,  2 ,  2  ,  2 ,  4 , 4 , // 22
-                        4 ,  2 ,  2 , -2  ,  2 ,  2 , 4 , // 14     // 36
-                        4 ,  2 , -3 , -4  , -3 ,  2 , 4 , // 3
-                        2 , -2 , -4 , -10 , -4 , -2 , 2 , // -18    // -12       // total 60
-                        4 ,  2 , -3 , -4  , -3 ,  2 , 4 , // 3
-                        4 ,  2 ,  2 , -2  ,  2 ,  2 , 4 , // 14     // 36
-                        4 ,  4 ,  2 ,  2  ,  2 ,  4 , 4 ; // 22
-
-        diferencia /= 60;
-        dst = aplicarKernel( img, diferencia );
-
-        return dst.clone();
-    }
-
-    void canny(Mat &src, Mat &dst, int lowThreshold )
-    {
-        //int const max_lowThreshold = 100;
-        int ratio = 3;
-        int kernel_size = 3;
-
-        Mat src_gray;
-        Mat detected_edges;
-        /// Convert the image to grayscale
-        cvtColor( src, src_gray, CV_BGR2GRAY );
-
-        /// Reduce noise with a kernel 3x3
-        blur( src_gray, detected_edges, Size(3,3) );
-
-        /// Canny detector
-        Canny( detected_edges, detected_edges, lowThreshold, lowThreshold*ratio, kernel_size );
-
-        /// Using Canny's output as a mask, we display our result
-        dst = Scalar::all(0);
-
-        src.copyTo( dst, detected_edges);
-        //imshow( window_name, dst );
-        // imwrite( "prueba.jpg" , dst );
-    }
-
-    // void todos( Mat src )
-    // {
-    //     string basename = "";
-    //     string metodo = "canny";
-    //     imwrite( basename + metodo + "resultado.jpg" , canny(src));
-
-    //     metodo = "circular";
-    //     imwrite( basename + metodo + "resultado.jpg" , pruebaCirc(src)-src );
-        
-    //     metodo = "gauss";
-    //     imwrite( basename + metodo + "resultado.jpg" , gauss(src) );
-        
-    //     metodo = "difsep";
-    //     imwrite( basename + metodo + "resultado.jpg" , difSeparada(src) );
-
-    //     metodo = "roberts";
-    //     imwrite( basename + metodo + "resultado.jpg" , roberts(src) );
-        
-    //     metodo = "difpixeles";
-    //     imwrite( basename + metodo + "resultado.jpg" , difPixeles(src) );
-        
-    //     metodo = "experimental";
-    //     imwrite( basename + metodo + "resultado.jpg" , prueba(src) );
-    //     //imwrite( basename + metodo + ".jpg" , prueba(src) );
-    // }
-
-};
-
-// tope y base, uno debe ser 0 y el otro 255, hecho asi para poder invertir el resultado mas facilmente 
-void binarizar(Mat & dest, Mat & hola , int umbral, int tope, int base)
-{
-    cvtColor( dest, hola, COLOR_BGR2GRAY );
-    MatIterator_< Vec3b > it, end;
-    it  = hola.begin< Vec3b >( );
-    end = hola.end< Vec3b >( );
-    for(  ; it != end; ++it)
-    {
-        if( (*it)[0] < umbral ) { (*it)[0] = tope; }
-        else                    { (*it)[0] = base; }
-    }
-    cvtColor( hola, hola, COLOR_GRAY2BGR );
-}
-
-
-// ero es si primero se hace erocion y luego dilatacion o al reves
-void limpiar( bool ero, Mat &img,Mat &res, int tipo , int tam)
-{
-    if ( ero )
-    {
-        erocion(img ,res , tipo , tam );
-    }
-    dilatar(res ,res , tipo , tam );
-    if (!ero)
-    {
-        erocion(img ,res , tipo , tam );
-    }
-}
-

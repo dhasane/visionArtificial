@@ -2,13 +2,18 @@
 
 DIR=$1
 
-./clean $DIR
+#./clean $DIR
 
 # para poder hacer pruebas con muchas imagenes de una 
 
+ARC="valores"
+
+rm $ARC
+
 for file in  $DIR/*.j*g 
 do
-	echo ./build/cara $file
-	./build/cara $file
+	echo ./build/caras $file 
+	echo ./build/caras $file >> $ARC
+	./build/caras $file 		>> $ARC
 
 done

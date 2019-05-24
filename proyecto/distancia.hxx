@@ -159,8 +159,13 @@ class Area{
         }
 
         bool insertar(Punto p )
+<<<<<<< HEAD
         {
             if ( p.color == BLANCO )
+=======
+        {            
+            if ( p.color == Vec3b(255,255,255) )
+>>>>>>> 13f3a650e49f9e1ca069efc5b7caccaaedcd776b
             {
                 puntos->push_back( p );
                 
@@ -244,9 +249,16 @@ class Area{
                     }
 
             }
+<<<<<<< HEAD
             // esto podria ser mejor cambiarlo a que divida por la distancia desde el centro
             
 			if ( distMin == 0 || distMax == 0 )
+=======
+            
+            // return distMin;
+
+            if ( distMin == 0 || distMax == 0 )
+>>>>>>> 13f3a650e49f9e1ca069efc5b7caccaaedcd776b
 			{
 				return 0;
 			}
@@ -255,8 +267,10 @@ class Area{
             val /= distMax;
 				
             return val ;
+<<<<<<< HEAD
+=======
         }
-		  
+
         // promedio del area -> consigue el centro del area 
         void getCentro( )
         {
@@ -272,8 +286,77 @@ class Area{
             
             this->centroPromedio = new Punto( px , py , (0,0,0 ) );
         }
+
+        float distanciasDeBorde( Punto pt )
+        {
+            
+            int distMax = 0; // distancia maxima al borde
+            int distAct = 0; // distancia hasta el punto mirado actualmente 
+            bool primero = true;
+            
+            for( auto bd = borde->begin() ; bd != borde->end(); ++bd)
+            {
+                    //distAct = distanciaEuclidiana
+                    distAct = sqrt(pow((pt.x - bd->x), 2) + pow((pt.y - bd->y), 2));
+
+                    if ( primero ) 
+                    {
+                        distMax = distAct;
+                        primero = false;
+                    }
+                    else
+                    {
+                        if ( distMax < distAct)
+                        {
+                            distMax = distAct;
+                        }
+                    }
+
+            }
+
+            // cout<<"   "<<distMax<<endl;
+            
+            return distMax;
+>>>>>>> 13f3a650e49f9e1ca069efc5b7caccaaedcd776b
+        }
+        
+        // void areaADistancia( Mat &img )
+        // {
+        //     getCentro();
+
+        //     float distmax = distanciasDeBorde(*centroPromedio) + 5;
+            
+<<<<<<< HEAD
+            this->centroPromedio = new Punto( px , py , (0,0,0 ) );
+        }
 		        
 		float areaADistancia( Mat &img )
+=======
+        //     float dst;
+        //     int idst;
+        //     if (centroPromedio != NULL)
+        //     {
+        //         for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
+        //         {
+
+        //             dst = distanciaDeBorde( *pt ) ;
+        //             dst *= 255;
+        //             dst /= distmax ;
+                    
+
+        //             idst = int(dst);
+        //             img.at<Vec3b>( Point( pt->x, pt->y ) ) = Vec3b( idst,idst,idst ) ;
+        //         }
+
+        //         img.at<Vec3b>( Point( centroPromedio->x, centroPromedio->y) ) = Vec3b( 0 ,0 ,255);
+            
+        //     }
+            
+            
+        // }
+
+        float areaADistancia( Mat &img )
+>>>>>>> 13f3a650e49f9e1ca069efc5b7caccaaedcd776b
         {
             getCentro();
             float dst;
@@ -283,7 +366,11 @@ class Area{
 
             if (centroPromedio != NULL)
             {
+<<<<<<< HEAD
 				cout << this->id << "   " << this->size() << endl;
+=======
+				// cout << this->id << "   " << this->size() << endl;
+>>>>>>> 13f3a650e49f9e1ca069efc5b7caccaaedcd776b
                 for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
                 {
                     dst = distanciaDeBorde( *pt ) ;
@@ -294,10 +381,14 @@ class Area{
 					dst /= puntos->size();
                     forma += dst;
                 }
+<<<<<<< HEAD
                 //img.at<Vec3b>( Point( centroPromedio->x, centroPromedio->y) ) = Vec3b( 0 ,0 ,255);
             	
 			}
 			
+=======
+			}
+>>>>>>> 13f3a650e49f9e1ca069efc5b7caccaaedcd776b
 			return forma;
         }
 };
@@ -309,10 +400,11 @@ class Conjunto{
 	 int tamy;
 
     public:
+
         Conjunto(Mat &src , bool esquinas)
         {
-			   this->tamx = src.cols;
-				this->tamy = src.rows;
+			this->tamx = src.cols;
+			this->tamy = src.rows;
 
             areas = new vector<Area>();
             Recorrido rec(src.cols,src.rows);
@@ -339,7 +431,7 @@ class Conjunto{
                 }
                 pos++;
             }
-            cout<<endl<<"areas : "<<this->size()<<endl;
+            // cout<<endl<<"areas : "<<this->size()<<endl;
         }
 
         // verifica si un punto es viable 
@@ -412,6 +504,17 @@ class Conjunto{
             return areas->size();
         }
 		  
+        // void conjuntoADistancias( Mat &dest )
+        // {
+        //     dest = cv::Scalar(0,0,0);
+        //     cout<< this-> tamx << "   " << this->tamy << endl;
+            
+        //     for (auto area = areas->begin(); area != areas->end(); ++area)
+        //     {
+        //         area->areaADistancia( dest );
+        //     }
+        // }
+
         void conjuntoADistancias( Mat &dest )
         {
 			float promedio = 0;
@@ -425,11 +528,15 @@ class Conjunto{
 			cout << " promedio " << promedio << endl;
 
             dest = cv::Scalar(0,0,0);
-            cout<< this-> tamx << "   " << this->tamy << endl;
+            // cout<< this-> tamx << "   " << this->tamy << endl;
             
             for (auto area = areas->begin(); area != areas->end(); ++area)
             {
+<<<<<<< HEAD
 				if ( area->size( ) >= promedio )
+=======
+				if ( area->size( ) > 2 )
+>>>>>>> 13f3a650e49f9e1ca069efc5b7caccaaedcd776b
 				{
 					float val = area->areaADistancia( dest ) ;
 
@@ -443,7 +550,11 @@ class Conjunto{
 
         void conjuntoAImagen(Mat &img, Mat &res)
         {
+<<<<<<< HEAD
             res = img.clone();
+=======
+            res.create( img.size(), img.type() );
+>>>>>>> 13f3a650e49f9e1ca069efc5b7caccaaedcd776b
             res = cv::Scalar(0,0,0);
             for (auto area = areas->begin(); area != areas->end(); ++area)
             {
