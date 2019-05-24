@@ -665,7 +665,7 @@ class Bordes{
         Mat src_gray;
         Mat detected_edges;
         /// Convert the image to grayscale
-        cvtColor( src, src_gray, CV_BGR2GRAY );
+        cvtColor( src, src_gray, COLOR_BGR2GRAY );
 
         /// Reduce noise with a kernel 3x3
         blur( src_gray, detected_edges, Size(3,3) );
