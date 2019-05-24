@@ -12,6 +12,12 @@
 #include <opencv2/core/utility.hpp>
 #include "opencv2/imgcodecs.hpp"
 
+//using namespace cv;
+//using namespace std;
+
+
+Vec3b BLANCO = Vec3b(255,255,255);
+Vec3b NEGRO  = Vec3b(0,0,0);
 
 class Punto{
 
@@ -108,6 +114,8 @@ class Recorrido{
 };
 
 class Area{
+
+
     vector<Punto> *puntos;  // puntos del area
     deque<Punto> *posibles;// posibles puntos del area :D
 	vector<Punto> *borde;   // puntos del borde
@@ -152,10 +160,7 @@ class Area{
 
         bool insertar(Punto p )
         {
-            //Vec3b bla = Vec3b(255,255,255);
-            //int ye =  p.color == bla ? 1 : 0;
-            
-            if ( p.color == Vec3b(255,255,255) )
+            if ( p.color == BLANCO )
             {
                 puntos->push_back( p );
                 
@@ -218,7 +223,6 @@ class Area{
             
             for( auto bd = borde->begin() ; bd != borde->end(); ++bd)
             {
-                    //distAct = distanciaEuclidiana
                     distAct = sqrt(pow((pt.x - bd->x), 2) + pow((pt.y - bd->y), 2));
 
                     if ( primero ) 
@@ -241,43 +245,16 @@ class Area{
 
             }
             // esto podria ser mejor cambiarlo a que divida por la distancia desde el centro
-            //float val = distMin;
             
-            //val /= distMax;
-            return distMin;
-        }
+			if ( distMin == 0 || distMax == 0 )
+			{
+				return 0;
+			}
 
-
-        float distanciasDeBorde( Punto pt )
-        {
-            
-            int distMax = 0; // distancia maxima al borde
-            int distAct = 0; // distancia hasta el punto mirado actualmente 
-            bool primero = true;
-            
-            for( auto bd = borde->begin() ; bd != borde->end(); ++bd)
-            {
-                    //distAct = distanciaEuclidiana
-                    distAct = sqrt(pow((pt.x - bd->x), 2) + pow((pt.y - bd->y), 2));
-
-                    if ( primero ) 
-                    {
-                        distMax = distAct;
-                        primero = false;
-                    }
-                    else
-                    {
-                        if ( distMax < distAct)
-                        {
-                            distMax = distAct;
-                        }
-                    }
-
-            }
-
-            cout<<"   "<<distMax<<endl;
-            
-            return distMax;
+			float val = distMin;
+            val /= distMax;
+				
+            return val ;
         }
 		  
         // promedio del area -> consigue el centro del area 
@@ -295,35 +272,34 @@ class Area{
             
             this->centroPromedio = new Punto( px , py , (0,0,0 ) );
         }
-        void areaADistancia( Mat &img )
+		        
+		float areaADistancia( Mat &img )
         {
             getCentro();
-
-            float distmax = distanciasDeBorde(*centroPromedio) + 5;
-            
             float dst;
             int idst;
+
+			float forma = 0;
+
             if (centroPromedio != NULL)
             {
+				cout << this->id << "   " << this->size() << endl;
                 for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
                 {
-
                     dst = distanciaDeBorde( *pt ) ;
                     dst *= 255;
-                    dst /= distmax ;
-                    
-
                     idst = int(dst);
                     img.at<Vec3b>( Point( pt->x, pt->y ) ) = Vec3b( idst,idst,idst ) ;
+
+					dst /= puntos->size();
+                    forma += dst;
                 }
-
-                img.at<Vec3b>( Point( centroPromedio->x, centroPromedio->y) ) = Vec3b( 0 ,0 ,255);
-            
-            }
-            
-            
+                //img.at<Vec3b>( Point( centroPromedio->x, centroPromedio->y) ) = Vec3b( 0 ,0 ,255);
+            	
+			}
+			
+			return forma;
         }
-
 };
 
 class Conjunto{
@@ -350,11 +326,11 @@ class Conjunto{
             {
                 x = pos % src.cols;
                 y = pos / src.cols;
-                if ( (*it) == Vec3b(0,0,0) )
+                if ( (*it) == NEGRO )
                 {
                     rec.verPos( x, y );
                 }
-                else if ( !rec.visto( x, y) && (*it) == Vec3b(255,255,255)) 
+                else if ( !rec.visto( x, y) && (*it) == BLANCO) 
                 {
                     rec.verPos( x, y );
                     area = new Area( Punto( x, y, *it ), this->size() + 1 );  
@@ -438,23 +414,41 @@ class Conjunto{
 		  
         void conjuntoADistancias( Mat &dest )
         {
+			float promedio = 0;
+
+            for (auto area = areas->begin(); area != areas->end(); ++area)
+			{
+				promedio += area->size();
+			}
+			promedio /= this->size();
+
+			cout << " promedio " << promedio << endl;
+
             dest = cv::Scalar(0,0,0);
             cout<< this-> tamx << "   " << this->tamy << endl;
             
             for (auto area = areas->begin(); area != areas->end(); ++area)
             {
-                area->areaADistancia( dest );
+				if ( area->size( ) >= promedio )
+				{
+					float val = area->areaADistancia( dest ) ;
+
+					if ( val != 0 ) 
+					{
+						cout << val << endl;
+					}
+				}
             }
         }
 
         void conjuntoAImagen(Mat &img, Mat &res)
         {
             res = img.clone();
-            //res = cv::Scalar(255,255,255);
             res = cv::Scalar(0,0,0);
             for (auto area = areas->begin(); area != areas->end(); ++area)
             {
-                area->areaAImagen(res, this->size() );
+                area->areaAImagen( res, this->size() );
             }
         }
 };
+

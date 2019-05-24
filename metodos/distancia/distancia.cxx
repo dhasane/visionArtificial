@@ -414,12 +414,22 @@ class Conjunto{
 		  
         void conjuntoADistancias( Mat &dest )
         {
+			float promedio = 0;
+
+            for (auto area = areas->begin(); area != areas->end(); ++area)
+			{
+				promedio += area->size();
+			}
+			promedio /= this->size();
+
+			cout << " promedio " << promedio << endl;
+
             dest = cv::Scalar(0,0,0);
             cout<< this-> tamx << "   " << this->tamy << endl;
             
             for (auto area = areas->begin(); area != areas->end(); ++area)
             {
-				if ( area->size( ) > 2 )
+				if ( area->size( ) >= promedio )
 				{
 					float val = area->areaADistancia( dest ) ;
 
@@ -484,7 +494,7 @@ int main ( int argc, char** argv )
     cout<<"tamaño imagen : "<< src.cols<< " , "<<src.rows<<endl<< "total pixeles : "<<src.cols * src.rows<<endl;
     
     //cvtColor( src, src, COLOR_BGR2GRAY );
-	binarizar( src , src , 70, 0 , 255);
+	binarizar( src , src , 130, 0 , 255);
     //otsu( src , src );
     
 	imwrite( "byn.jpg" , src );

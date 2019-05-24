@@ -11,10 +11,6 @@ PROJECT( CARAS )
 ## ============
 
 FIND_PACKAGE( OpenCV REQUIRED )
-#FIND_PACKAGE(ITK REQUIRED)
-#IF(ITK_FOUND)
-#  INCLUDE(${ITK_USE_FILE})
-##ENDIF(ITK_FOUND)
 
 ## ================================================
 ## = Do not allow to build inside the source tree =
@@ -42,8 +38,3 @@ MARK_AS_ADVANCED(
 
 ADD_EXECUTABLE( caras caras.cxx )
 TARGET_LINK_LIBRARIES( caras ${OpenCV_LIBS} )
-
-ADD_EXECUTABLE( cara cara.cxx )
-TARGET_LINK_LIBRARIES( cara ${OpenCV_LIBS} )
-
-

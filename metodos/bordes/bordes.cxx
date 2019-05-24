@@ -6,7 +6,7 @@
 
 #include "opencv2/imgproc.hpp"
 #include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui.hpp"
+//#include "opencv2/highgui.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -221,7 +221,7 @@ int main ( int argc, char** argv )
     dst = prueba(src);
     */
 
-
+	basename = "";
     
     metodo = "canny";
     imwrite( basename + metodo + "resultado.jpg" , canny(src));
