@@ -43,5 +43,6 @@ MARK_AS_ADVANCED(
 ADD_EXECUTABLE( bordes bordes.cxx )
 TARGET_LINK_LIBRARIES( bordes ${OpenCV_LIBS} )
 
-
+ADD_EXECUTABLE( canny canny.cxx )
+TARGET_LINK_LIBRARIES( canny ${OpenCV_LIBS} )
 

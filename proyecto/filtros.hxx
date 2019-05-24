@@ -656,46 +656,56 @@ class Bordes{
         return dst.clone();
     }
 
-    Mat canny(Mat img)
+    void canny(Mat &src, Mat &dst, int lowThreshold )
     {
-        cv::Mat dst;
+        //int const max_lowThreshold = 100;
+        int ratio = 3;
+        int kernel_size = 3;
 
-        int lowTh = 45;
-        int highTh = 90;
-        cv::cvtColor(img, dst, COLOR_RGB2GRAY);                   // convert to grayscale
+        Mat src_gray;
+        Mat detected_edges;
+        /// Convert the image to grayscale
+        cvtColor( src, src_gray, CV_BGR2GRAY );
 
-        cv::GaussianBlur(dst,dst,cv::Size(5, 5),1.8);           // Blur Effect             
+        /// Reduce noise with a kernel 3x3
+        blur( src_gray, detected_edges, Size(3,3) );
 
-        cv::Canny(dst,dst,lowTh,highTh);       // Canny Edge Image
+        /// Canny detector
+        Canny( detected_edges, detected_edges, lowThreshold, lowThreshold*ratio, kernel_size );
 
-        return dst.clone();
+        /// Using Canny's output as a mask, we display our result
+        dst = Scalar::all(0);
+
+        src.copyTo( dst, detected_edges);
+        //imshow( window_name, dst );
+        // imwrite( "prueba.jpg" , dst );
     }
 
-    void todos( Mat src )
-    {
-        string basename = "";
-        string metodo = "canny";
-        imwrite( basename + metodo + "resultado.jpg" , canny(src));
+    // void todos( Mat src )
+    // {
+    //     string basename = "";
+    //     string metodo = "canny";
+    //     imwrite( basename + metodo + "resultado.jpg" , canny(src));
 
-        metodo = "circular";
-        imwrite( basename + metodo + "resultado.jpg" , pruebaCirc(src)-src );
+    //     metodo = "circular";
+    //     imwrite( basename + metodo + "resultado.jpg" , pruebaCirc(src)-src );
         
-        metodo = "gauss";
-        imwrite( basename + metodo + "resultado.jpg" , gauss(src) );
+    //     metodo = "gauss";
+    //     imwrite( basename + metodo + "resultado.jpg" , gauss(src) );
         
-        metodo = "difsep";
-        imwrite( basename + metodo + "resultado.jpg" , difSeparada(src) );
+    //     metodo = "difsep";
+    //     imwrite( basename + metodo + "resultado.jpg" , difSeparada(src) );
 
-        metodo = "roberts";
-        imwrite( basename + metodo + "resultado.jpg" , roberts(src) );
+    //     metodo = "roberts";
+    //     imwrite( basename + metodo + "resultado.jpg" , roberts(src) );
         
-        metodo = "difpixeles";
-        imwrite( basename + metodo + "resultado.jpg" , difPixeles(src) );
+    //     metodo = "difpixeles";
+    //     imwrite( basename + metodo + "resultado.jpg" , difPixeles(src) );
         
-        metodo = "experimental";
-        imwrite( basename + metodo + "resultado.jpg" , prueba(src) );
-        //imwrite( basename + metodo + ".jpg" , prueba(src) );
-    }
+    //     metodo = "experimental";
+    //     imwrite( basename + metodo + "resultado.jpg" , prueba(src) );
+    //     //imwrite( basename + metodo + ".jpg" , prueba(src) );
+    // }
 
 };
 
@@ -715,9 +725,17 @@ void binarizar(Mat & dest, Mat & hola , int umbral, int tope, int base)
 }
 
 
-
-void limpiar(Mat &img,Mat &res, int tipo , int tam)
+// ero es si primero se hace erocion y luego dilatacion o al reves
+void limpiar( bool ero, Mat &img,Mat &res, int tipo , int tam)
 {
-    erocion(img ,res , tipo , tam );
+    if ( ero )
+    {
+        erocion(img ,res , tipo , tam );
+    }
     dilatar(res ,res , tipo , tam );
+    if (!ero)
+    {
+        erocion(img ,res , tipo , tam );
+    }
 }
+

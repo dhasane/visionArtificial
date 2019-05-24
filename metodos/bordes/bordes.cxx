@@ -172,21 +172,23 @@ Mat pruebaCirc(Mat img)
   return dst.clone();
 }
 
-Mat canny(Mat img)
+Mat canny(Mat img , int lowTh, int  highTh , int tam  )
 {
   cv::Mat dst;
 
-  int lowTh = 45;
-  int highTh = 90;
+  //int lowTh = 45;
+  //int highTh = 90;
   cv::cvtColor(img, dst, COLOR_RGB2GRAY);                   // convert to grayscale
 
-  cv::GaussianBlur(dst,dst,cv::Size(5, 5),1.8);           // Blur Effect             
+  blur( dst, dst, cv::Size(tam,tam) );           // Blur Effect             
 
-  cv::Canny(dst,dst,lowTh,highTh);       // Canny Edge Image
-
+  cv::Canny( dst, dst, lowTh, highTh , 3);       // Canny Edge Image
+  
+  cv::cvtColor(dst,dst , COLOR_GRAY2RGB);
   return dst.clone();
 }
 
+void binarizar(Mat & dest, Mat & hola , int umbral, int tope, int base);
 
 int main ( int argc, char** argv )
 {
@@ -221,31 +223,69 @@ int main ( int argc, char** argv )
     dst = prueba(src);
     */
 
+    imwrite( "original.jpg" , src ) ;
+    basename = "";
+    Mat res, img;
+	int tope = 255;
+	int base = 0;
+	int umbral= 125;
+	int val = 100;
 
-    
     metodo = "canny";
-    imwrite( basename + metodo + "resultado.jpg" , canny(src));
+	img = canny(src , val , val*3  , 5);
+	binarizar(img ,res ,umbral, tope, base );
+    imwrite( basename + metodo + "resultado.jpg" ,res ) ;
 
     metodo = "circular";
-    //imwrite( basename + metodo + "resultado.jpg" , pruebaCirc(src)-src );
-    
+	img = pruebaCirc(src)-src;
+    binarizar(img , res, umbral, tope, base );
+    imwrite( basename + metodo + "resultado.jpg" ,res ) ;
+
+
     metodo = "gauss";
-    //imwrite( basename + metodo + "resultado.jpg" , gauss(src) );
-    
+	img = gauss(src);
+    binarizar(img , res, umbral, tope, base  );
+    imwrite( basename + metodo + "resultado.jpg" ,res ); 
+
+
     metodo = "difsep";
-    //imwrite( basename + metodo + "resultado.jpg" , difSeparada(src) );
+	img = difSeparada(src);
+    binarizar(img , res, umbral, tope, base  );
+    imwrite( basename + metodo + "resultado.jpg" ,res ); 
+
 
     metodo = "roberts";
-    //imwrite( basename + metodo + "resultado.jpg" , roberts(src) );
-    
+    img = roberts(src);
+	binarizar(img , res, umbral, tope, base );
+    imwrite( basename + metodo + "resultado.jpg" ,res ) ;
+
+
     metodo = "difpixeles";
-    //imwrite( basename + metodo + "resultado.jpg" , difPixeles(src) );
-    
+	img = difPixeles(src);
+    binarizar(img  , res, umbral, tope, base );
+    imwrite( basename + metodo + "resultado.jpg" ,res ) ;
+
+
     metodo = "experimental";
-    //imwrite( basename + metodo + "resultado.jpg" , prueba(src) );
-    imwrite( basename + metodo + ".jpg" , prueba(src) );
+	img = prueba(src);
+    binarizar(img  , res, umbral, tope, base );
+    imwrite( basename + metodo + "resultado.jpg" ,res ) ;
     
     
     return 0;
 } 
-//bunterwind
+
+// tope y base, uno debe ser 0 y el otro 255, hecho asi para poder invertir el resultado mas facilmente 
+void binarizar(Mat & dest, Mat & hola , int umbral, int tope, int base)
+{
+	cvtColor( dest, hola, COLOR_BGR2GRAY );
+	MatIterator_< Vec3b > it, end;
+	it  = hola.begin< Vec3b >( );
+	end = hola.end< Vec3b >( );
+	for(  ; it != end; ++it)
+	{
+		if( (*it)[0] < umbral ) { (*it)[0] = tope; }
+		else                    { (*it)[0] = base; }
+	}
+	cvtColor( hola, hola, COLOR_GRAY2BGR );
+}

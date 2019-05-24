@@ -42,8 +42,3 @@ MARK_AS_ADVANCED(
 
 ADD_EXECUTABLE( caras caras.cxx )
 TARGET_LINK_LIBRARIES( caras ${OpenCV_LIBS} )
-
-ADD_EXECUTABLE( cara cara.cxx )
-TARGET_LINK_LIBRARIES( cara ${OpenCV_LIBS} )
-
-
