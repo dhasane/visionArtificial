@@ -9,6 +9,8 @@
 class Pertenencia
 {
     private:
+        int cantidad; // cantidad de valores agregados a esta pertenencia
+
         float ini;  // soft start 
         float iniT; // hard start
         float finT; // hard end
@@ -16,14 +18,29 @@ class Pertenencia
 
     public:
         Pertenencia( float i, float it, float ft,float f );
-        float evaluar(float eval);
-        std::string limites();
-        float centro();
+        Pertenencia( float i, float it, float ft,float f, int cant );
+        float evaluar( float eval );
+        std::string limites( );
+        float centro( );
+        bool agregar( float val );
+        int getCantidad();
 };
 
 // constructor :v
 Pertenencia::Pertenencia( float i, float it, float ft,float f )
 {
+    this->cantidad = 1;
+
+    this->ini = i;
+    this->iniT= it;
+    this->finT= ft;
+    this->fin = f;
+}
+
+Pertenencia::Pertenencia( float i, float it, float ft,float f, int cant )
+{
+    this->cantidad = cant;
+
     this->ini = i;
     this->iniT= it;
     this->finT= ft;
@@ -34,7 +51,7 @@ Pertenencia::Pertenencia( float i, float it, float ft,float f )
 std::string Pertenencia::limites()
 {
     std::string ret;
-    ret = "("+std::to_string(this->ini)+" , "+std::to_string(this->iniT)+" , "+std::to_string(this->finT)+" , "+std::to_string(this->fin)+")";
+    ret = std::to_string(this->ini)+" , "+std::to_string(this->iniT)+" , "+std::to_string(this->finT)+" , "+std::to_string(this->fin);
     return ret;
 }
 
@@ -72,6 +89,21 @@ float Pertenencia::centro()
 {
     // pensandolo, hay una forma mas facil, pero ya se quedo asi
     return ((this->fin-this->ini)/ 2) + this->ini;
+}
+
+int Pertenencia::getCantidad()
+{
+    return this->cantidad;
+}
+
+// retorna el centro de la Pertenencia 
+bool Pertenencia::agregar( float val )
+{
+    std::cout << "agregado " << val << std::endl;
+    // aqui se hace toda la magia graciosa
+    // estoy pensando en algo relacionado a la varianza 
+    this->cantidad ++ ; 
+    return true;
 }
 
 

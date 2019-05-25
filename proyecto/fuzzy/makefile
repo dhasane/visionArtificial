@@ -5,9 +5,13 @@ MAIN = test
 
 NOMBRE= dif
 
-CLS= difusa.o Clasificacion.o Pertenencia.o
+CLS= Clasificacion.o Pertenencia.o
 
 OBJ = $(MAIN).o $(CLS)
+
+__: 
+	$(CC) -o $(NOMBRE) $(MAIN).cpp $(CFLAGS)
+
 
 _: main
 

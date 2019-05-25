@@ -2,38 +2,31 @@
 #include <iostream>
 #include <string>
 
-#include "difusa.cpp"
+#include "Clasificacion.cpp"
 
 using namespace std;
 main()
 {
-    Difusa dif;
+    Clasificacion clasif( 2 );
+    clasif.cargar( "prueba" );
+    clasif.clasificar( 7.6 );
 
-    dif.insertarClasificacion("azucar");
-    dif.insertarAClasificacion("azucar","poco dulce",2,4,7,10);
-    dif.insertarAClasificacion("azucar","medio dulce",6,10,15,18);
-    dif.insertarAClasificacion("azucar","muy dulce",16,20,30,30);
+    cout << " - - - - - - - " << endl;
+    clasif.clasificar( 8.4 );
 
+    cout << " - - - - - - - " << endl;
+    clasif.clasificar( 9.59 );
 
-    dif.insertarClasificacion("leche");
-    dif.insertarAClasificacion("leche","hm",6,8,12,16);
+    cout << " - - - - - - - " << endl;
+    clasif.clasificar( 3.2 );
 
-    // prueba para evitar que se repitan nombres de Clasificaciones
-    if(!dif.insertarClasificacion("leche"))
-    {
-        cout<<"valor ya insertado"<<endl;
-    }
+    cout << " - - - - - - - " << endl;
 
 
-    cout<< "evaluando 8 en azucar : " << dif.fuzzy("azucar", 8)<<endl;
-    cout<<endl<<"------------------------------------\n";
     
-    cout<< dif.conseguirValor("azucar","poco dulce")<<endl;
-    cout<<endl<<"------------------------------------\n";
-    cout<< dif.conseguirValor("azucar","medio dulce")<<endl;
-    cout<<endl<<"------------------------------------\n";
+
+    clasif.guardar( "prueba" );
+
     
-    cout<<"algo entre poco dulce y medio dulce : "<< dif.quieroAlgoEntre("azucar","poco dulce","medio dulce")<<endl;
-    cout<<endl<<"------------------------------------\n";
-    dif.imprimir();
+    clasif.imprimir( );
 }

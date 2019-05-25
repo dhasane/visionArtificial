@@ -41,7 +41,7 @@ int main( int argc, char* argv[] )
     Mat dst;
     dst.create( src.size(), src.type() );   
     
-
+    
 
 
     // ubicar ---------------------------------------------------------------------------
@@ -76,13 +76,19 @@ int main( int argc, char* argv[] )
 
 
     // comparar a lo que ya se tiene -----------------------------------------------------
+    
+    Clasificacion clasif(1);
+    std::string archivo = "valores";
 
-    Clasificacion casif;
-
+    clasif.cargar( archivo );
     for( auto bd = distancias.begin() ; bd != distancias.end(); ++bd)
     {
         cout << *bd << endl;
+        clasif.clasificar( *bd );
     }
+    clasif.guardar( archivo );
+    // */
+    
 
 
 	imwrite( "distancia.jpg" , res2 ) ;
