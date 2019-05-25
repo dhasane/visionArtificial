@@ -49,13 +49,17 @@ int main( int argc, char* argv[] )
     // void canny(Mat &src, Mat &dst, int lowThreshold )
     bd.canny( src, dst, 25 );
 
+    imwrite( basename + "canny.jpg" , dst ) ;
+
     // void limpiar( bool ero, Mat &img,Mat &res, int tipo , int tam)
     limpiar( false, dst, dst, 2, 2 );
     
+    imwrite( basename + "limpieza.jpg" , dst ) ;
+
     // void binarizar(Mat & dest, Mat & hola , int umbral, int tope, int base)
     binarizar( dst , dst , 1, 0, 255);
 
-
+    imwrite( basename + "bin.jpg" , dst ) ;
 
 
 	// buscar por similaridad ------------------------------------------------------------
@@ -65,35 +69,38 @@ int main( int argc, char* argv[] )
 	Mat res1;
     conj.conjuntoAImagen( dst, res1 );
 	
-	imwrite( "imagen.jpg" , res1 ) ;
+	imwrite( basename + "imagen.jpg" , res1 ) ;
 	
     
     Mat res2;
     res2.create( src.size(), src.type() );  
     vector<float> distancias = conj.conjuntoADistancias( res2 );
-
-    cout << "distancias : " << endl ; 
-
+    imwrite( basename + "distancia.jpg" , res2 ) ;
 
     // comparar a lo que ya se tiene -----------------------------------------------------
     
-    Clasificacion clasif(1);
+    bool entrenamiento = false;
+
     std::string archivo = "valores";
-
+    Clasificacion clasif( 1 , entrenamiento );
     clasif.cargar( archivo );
-    for( auto bd = distancias.begin() ; bd != distancias.end(); ++bd)
+
+    if ( entrenamiento )
     {
-        cout << *bd << endl;
-        clasif.clasificar( *bd );
+        for( auto bd = distancias.begin() ; bd != distancias.end(); ++bd)
+        {
+            cout << *bd << endl;
+            clasif.clasificar( *bd );
+        }
+        clasif.guardar( archivo );
     }
-    clasif.guardar( archivo );
-    // */
-    
+    else
+    {
+        conj.conjuntoAImagen( dst, res1, clasif );
+	    imwrite( "areasClasificadas.jpg" , res1 ) ;
+    }
 
-
-	imwrite( "distancia.jpg" , res2 ) ;
-
-    imwrite(basename+"proyecto.jpg", dst );    
+    imwrite( basename + "Resultado.jpg", dst );    
 
     return 0;
 }

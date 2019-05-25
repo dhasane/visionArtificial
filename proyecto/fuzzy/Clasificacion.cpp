@@ -18,8 +18,9 @@ class Clasificacion
     private:
         std::vector<Pertenencia> pert ;
         float varMax ; 
+        bool entrenamiento;
     public:
-        Clasificacion( float varMax );
+        Clasificacion( float varMax, bool entrenamiento );
         bool insertarPertenencia( float i, float it, float ft,float f );
         bool insertarPertenencia( float i, float it, float ft,float f, int cant );
         void imprimir();
@@ -29,9 +30,10 @@ class Clasificacion
 };
 
 // pos crea el asunto 
-Clasificacion::Clasificacion( float varMax )
+Clasificacion::Clasificacion( float varMax, bool entrenamiento )
 {
     this->varMax = varMax ;
+    this->entrenamiento = entrenamiento;
 }
 
 
@@ -39,6 +41,7 @@ Clasificacion::Clasificacion( float varMax )
 bool Clasificacion::clasificar( float val )
 {
     // std::cout << this->pert.size() << std::endl;
+    bool valido = false;
     if( val != 0) // evitar formas vacias 
     {
         if ( this->pert.size() > 0 )
@@ -57,21 +60,28 @@ bool Clasificacion::clasificar( float val )
                 }
             }
 
-            if ( ff == -1 )
+            if ( ff == -1 && entrenamiento )
             {
                 this->insertarPertenencia( val-varMax , val, val , val+varMax ) ; 
+                valido = true;
             }
-            else 
+            else if ( entrenamiento )
             {
                 this->pert[ff].agregar( val );
+                valido = true;
+            }
+            else if( !entrenamiento && ff != -1 )
+            {
+                valido = true;
             }
         }
-        else
+        else if ( entrenamiento )
         {
-            this->insertarPertenencia( val-varMax , val, val , val+varMax ) ; 
+            this->insertarPertenencia( val-varMax , val, val , val+varMax ) ;
+            valido = true; 
         }
     }
-    
+    return valido;
 }
 
 void Clasificacion::guardar( std::string nombre )

@@ -12,6 +12,8 @@
 #include <opencv2/core/utility.hpp>
 #include "opencv2/imgcodecs.hpp"
 
+#include "../fuzzy/Clasificacion.cpp"
+
 //using namespace cv;
 //using namespace std;
 
@@ -26,11 +28,14 @@ class Punto{
         int y;
         Vec3b color;
 
+        Vec3b distancia; // distancia a borde :v 
+
         Punto(int x, int y ,Vec3b col )
         {
             this->x = x;
             this->y = y;
             this->color = col;
+            this->distancia = NEGRO;
         }
 
         void imprimir()
@@ -327,6 +332,82 @@ class Area{
 			}
 			return forma;
         }
+
+        float areaADistancia( Mat &img, Clasificacion clasif )
+        {
+            getCentro();
+            float dst;
+            int idst;
+
+			float forma = 0;
+
+            if (centroPromedio != NULL)
+            {
+				cout << this->id << "   " << this->size() << endl;
+                for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
+                {
+                    dst = distanciaDeBorde( *pt ) ;
+                    dst *= 255;
+                    idst = int(dst);
+                    // img.at<Vec3b>( Point( pt->x, pt->y ) ) = Vec3b( idst,idst,idst ) ;
+                    pt->distancia = Vec3b( idst,idst,idst ) ;
+
+					dst /= puntos->size();
+                    forma += dst;
+                }
+
+                if ( clasif.clasificar( forma ) )
+                {
+                    for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
+                    {
+                        img.at<Vec3b>( Point( pt->x, pt->y ) ) = pt->distancia;
+                    }
+                }
+			}
+			return forma;
+        }
+
+        void areaAImagen( Mat &img,int cantidad, Clasificacion clasif )
+        {
+            getCentro();
+            float dst;
+            int idst;
+
+			float forma = 0;
+
+            if (centroPromedio != NULL)
+            {
+				cout << this->id << "   " << this->size() << endl;
+                for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
+                {
+                    dst = distanciaDeBorde( *pt ) ;
+                    dst *= 255;
+                    idst = int(dst);
+                    // img.at<Vec3b>( Point( pt->x, pt->y ) ) = Vec3b( idst,idst,idst ) ;
+                    pt->distancia = Vec3b( idst,idst,idst ) ;
+
+					dst /= puntos->size();
+                    forma += dst;
+                }
+
+                if ( clasif.clasificar( forma ) )
+                {
+                    int r, g ,b ;
+                    int vv = 255 *3 / cantidad * this->id;
+                    r = vv % 256;
+                    vv -= 255;
+                    if ( vv > 0) g = vv % 256;
+                    vv -= 255;
+                    if ( vv > 0) b = vv % 256;
+                    Vec3b color = Vec3b(r,g,b);
+
+                    for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
+                    {
+                        img.at<Vec3b>( Point(pt->x, pt->y) ) = color;
+                    }
+                }
+			}
+        }
 };
 
 class Conjunto{
@@ -493,6 +574,17 @@ class Conjunto{
             for (auto area = areas->begin(); area != areas->end(); ++area)
             {
                 area->areaAImagen( res, this->size() );
+            }
+        }
+
+        void conjuntoAImagen(Mat &img, Mat &res, Clasificacion clasif )
+        {
+            res = img.clone();
+            res.create( img.size(), img.type() );
+            res = cv::Scalar(0,0,0);
+            for (auto area = areas->begin(); area != areas->end(); ++area)
+            {
+                area->areaAImagen( res, this->size(), clasif );
             }
         }
 };
