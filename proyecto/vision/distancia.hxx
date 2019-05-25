@@ -161,8 +161,6 @@ class Area{
         bool insertar(Punto p )
         {
             if ( p.color == BLANCO )
-  //      {            
-//            if ( p.color == Vec3b(255,255,255) )
             {
                 puntos->push_back( p );
                 
@@ -286,25 +284,22 @@ class Area{
             
             for( auto bd = borde->begin() ; bd != borde->end(); ++bd)
             {
-                    //distAct = distanciaEuclidiana
-                    distAct = sqrt(pow((pt.x - bd->x), 2) + pow((pt.y - bd->y), 2));
+                //distAct = distanciaEuclidiana
+                distAct = sqrt(pow((pt.x - bd->x), 2) + pow((pt.y - bd->y), 2));
 
-                    if ( primero ) 
+                if ( primero ) 
+                {
+                    distMax = distAct;
+                    primero = false;
+                }
+                else
+                {
+                    if ( distMax < distAct)
                     {
                         distMax = distAct;
-                        primero = false;
                     }
-                    else
-                    {
-                        if ( distMax < distAct)
-                        {
-                            distMax = distAct;
-                        }
-                    }
-
+                }
             }
-
-            
             return distMax;
         }
 		        
@@ -319,7 +314,6 @@ class Area{
             if (centroPromedio != NULL)
             {
 				cout << this->id << "   " << this->size() << endl;
-				// cout << this->id << "   " << this->size() << endl;
                 for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
                 {
                     dst = distanciaDeBorde( *pt ) ;
@@ -330,11 +324,7 @@ class Area{
 					dst /= puntos->size();
                     forma += dst;
                 }
-                //img.at<Vec3b>( Point( centroPromedio->x, centroPromedio->y) ) = Vec3b( 0 ,0 ,255);
-            	
 			}
-			
-			
 			return forma;
         }
 };
@@ -461,17 +451,19 @@ class Conjunto{
         //     }
         // }
 
-        void conjuntoADistancias( Mat &dest )
+        vector<float> conjuntoADistancias( Mat &dest )
         {
 			float promedio = 0;
 
-            for (auto area = areas->begin(); area != areas->end(); ++area)
-			{
-				promedio += area->size();
-			}
-			promedio /= this->size();
+            vector<float> distancias;
 
-			cout << " promedio " << promedio << endl;
+            // for (auto area = areas->begin(); area != areas->end(); ++area)
+			// {
+			// 	promedio += area->size();
+			// }
+			// promedio /= this->size();
+
+			// cout << " promedio " << promedio << endl;
 
             dest = cv::Scalar(0,0,0);
             // cout<< this-> tamx << "   " << this->tamy << endl;
@@ -481,14 +473,16 @@ class Conjunto{
 				//if ( area->size( ) >= promedio )
 				if ( area->size( ) > 2 )
 				{
-					float val = area->areaADistancia( dest ) ;
+					// float val = area->areaADistancia( dest ) ;
+                    distancias.push_back( area->areaADistancia( dest ) ) ;
 
-					if ( val != 0 ) 
-					{
-						cout << val << endl;
-					}
+					// if ( val != 0 ) 
+					// {
+					// 	cout << val << endl;
+					// }
 				}
             }
+            return distancias;
         }
 
         void conjuntoAImagen(Mat &img, Mat &res)

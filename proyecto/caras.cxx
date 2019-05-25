@@ -10,15 +10,13 @@
 using namespace cv;
 using namespace std;
 
-//#include "filtros.hxx"
-//#include "distancia.hxx"
-//#include "regiones.hxx"
-
 // todas las funciones, de ser necesario, convierten la imagen a gris, y al final lo retornan a bgr, para evitar complicaciones 
 // la imagen al ser retornada por una funcion, siempre va a ser bgr 
 
-#include "filtros.hxx"
-#include "distancia.hxx"
+#include "vision/filtros.hxx"
+#include "vision/distancia.hxx"
+
+#include "fuzzy/Clasificacion.cpp"
 
 int main( int argc, char* argv[] )
 {
@@ -43,7 +41,10 @@ int main( int argc, char* argv[] )
     Mat dst;
     dst.create( src.size(), src.type() );   
     
-    // ubicar -------------------------------------------------
+
+
+
+    // ubicar ---------------------------------------------------------------------------
 
     // void canny(Mat &src, Mat &dst, int lowThreshold )
     bd.canny( src, dst, 25 );
@@ -53,6 +54,9 @@ int main( int argc, char* argv[] )
     
     // void binarizar(Mat & dest, Mat & hola , int umbral, int tope, int base)
     binarizar( dst , dst , 1, 0, 255);
+
+
+
 
 	// buscar por similaridad ------------------------------------------------------------
 
@@ -66,7 +70,21 @@ int main( int argc, char* argv[] )
     
     Mat res2;
     res2.create( src.size(), src.type() );  
-    conj.conjuntoADistancias( res2 );
+    vector<float> distancias = conj.conjuntoADistancias( res2 );
+
+    cout << "distancias : " << endl ; 
+
+
+    // comparar a lo que ya se tiene -----------------------------------------------------
+
+    Clasificacion casif;
+
+    for( auto bd = distancias.begin() ; bd != distancias.end(); ++bd)
+    {
+        cout << *bd << endl;
+    }
+
+
 	imwrite( "distancia.jpg" , res2 ) ;
 
     imwrite(basename+"proyecto.jpg", dst );    

@@ -9,24 +9,21 @@
 class Pertenencia
 {
     private:
-        std::string nombre;
         float ini;  // soft start 
         float iniT; // hard start
         float finT; // hard end
         float fin;  // soft end
 
     public:
-        Pertenencia(std::string nom, float i, float it, float ft,float f );
+        Pertenencia( float i, float it, float ft,float f );
         float evaluar(float eval);
-        std::string getNombre();
         std::string limites();
         float centro();
 };
 
 // constructor :v
-Pertenencia::Pertenencia(std::string nom, float i, float it, float ft,float f )
+Pertenencia::Pertenencia( float i, float it, float ft,float f )
 {
-    this->nombre = nom;
     this->ini = i;
     this->iniT= it;
     this->finT= ft;
@@ -68,12 +65,6 @@ float Pertenencia::evaluar(float eval)
     }
 
     return porc;
-}
-
-// retorna el nombre de la Pertenencia
-std::string Pertenencia::getNombre()
-{
-    return this->nombre;
 }
 
 // retorna el centro de la Pertenencia 

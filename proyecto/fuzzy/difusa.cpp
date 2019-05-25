@@ -56,9 +56,28 @@ bool Difusa::insertarClasificacion(std::string nom)
         Clasificacion cl(nom);
         this->clasif.push_back(cl);
     }
-
     return !found;
-    
+}
+
+// crea una nueva Clasificacion, a la que solo le da nombre, 
+// y la ingresa a la lista
+bool Difusa::clasificar(std::string nom)
+{
+    bool found = false;
+    for (int a = 0; a < this->clasif.size() ; a++)
+    {
+        if(this->clasif[a].getNombre() == nom)
+        {
+            found = true;
+        }
+    }
+
+    if(!found)
+    {
+        Clasificacion cl(nom);
+        this->clasif.push_back(cl);
+    }
+    return !found;
 }
 
 // inserta una nueva Pertenencia a una clasificacion especifica

@@ -11,46 +11,39 @@
 class Clasificacion
 {
     private:
-        std::string nombre;
         std::vector<Pertenencia> pert;
     public:
-        Clasificacion(std::string nom);
-        bool insertarPertenencia(std::string nom, float i, float it, float ft,float f );
+        Clasificacion( );
+        bool insertarPertenencia( float i, float it, float ft,float f );
         void imprimir();
-        std::string getNombre();
         float fuzzy(float val);
         float centro(std::string val);
 };
 
-// pos crea el asunto / le da nombre
-Clasificacion::Clasificacion(std::string nom)
+// pos crea el asunto 
+Clasificacion::Clasificacion()
 {
-    this->nombre = nom;
-}
+    // aqui seria chevere cargar los datos que ya se tienen desde un archivo
 
-// retorna el nombre de la Clasificacion
-std::string Clasificacion::getNombre()
-{
-    return this->nombre;
+    // para al final guardar todo otra vez en un archivo :v 
 }
 
 // crea e inserta una nueva Pertenencia
 // retorna true, al haber insertado la Pertenencia
-bool Clasificacion::insertarPertenencia(std::string nom, float i, float it, float ft,float f )
+bool Clasificacion::insertarPertenencia( float i, float it, float ft,float f )
 {
-    Pertenencia npert(nom, i, it, ft, f );
+    Pertenencia npert( i, it, ft, f );
     this->pert.push_back(npert);
     return true;
 }
 
+
+
 // imprimir sigue imprimiendo :V
 void Clasificacion::imprimir()
 {
-    std::cout<<this->nombre<<std::endl;
-
     for (int a = 0; a < this->pert.size() ; a++)
     {
-        std::cout<<"   "<< this->pert[a].getNombre();
         std::cout<<" "<<this->pert[a].limites();
         std::cout<<"\n";
     }
@@ -60,7 +53,6 @@ void Clasificacion::imprimir()
 // debe retornar lista de floats/ por ahora retorna el centro de masa supuesto e imprime los datos
 float Clasificacion::fuzzy(float val)
 {
-    std::cout<<"\n"<<this->nombre<<std::endl;
     float eval = 0;
     float cm = 0; // centro de masa
 
@@ -73,8 +65,6 @@ float Clasificacion::fuzzy(float val)
 
         //std::cout<<" :"<<cct<<"\n";
         cm += cct;
-
-        std::cout<<"   "<< this->pert[a].getNombre();
         std::cout<<" "<<eval <<"\n";
 
         //std::cout<<"\n";
@@ -84,19 +74,5 @@ float Clasificacion::fuzzy(float val)
 
     return cm;
 }
-
-// retorna el centro de la Pertenencia
-float Clasificacion::centro(std::string val)
-{
-    for (int a = 0; a < this->pert.size() ; a++)
-    {
-        if(this->pert[a].getNombre() == val)
-        {
-            return (this->pert[a].centro());
-        }
-    }
-    return 0;
-}
-
 
 #endif
