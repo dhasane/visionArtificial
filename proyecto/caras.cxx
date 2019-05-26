@@ -20,9 +20,22 @@ using namespace std;
 
 int main( int argc, char* argv[] )
 {
-    CommandLineParser parser( argc, argv, "{@input |  | input image}" );
-    Mat src = imread( parser.get<String>( "@input" ) );
-    
+    if( argc < 2 )
+    {
+      cout<<" ingresar : "<<argv[0]<<" (nombre imagen) (opcional: entrenamiento)"<<endl;
+      return -1;
+    }
+    const char* imageName =      argv[1];
+    int         entrenm   = argc == 3 ? atoi(argv[2]) : 0 ; 
+
+    if ( entrenm != 0 && entrenm != 1 )
+    {
+        printf("entrenamiento debe ser 1 o 0\n");
+        return -1;
+    }
+
+    Mat src = imread( imageName );
+
     if( src.empty() )
     {
         cout << "Could not open or find the image!\n" << endl;
@@ -34,7 +47,7 @@ int main( int argc, char* argv[] )
     std::string basename;
     getline( ss, basename, '.' );
 
-    basename = ""; // para las pruebas 
+    // basename = ""; // para las pruebas 
 
     Bordes bd;
 
@@ -52,7 +65,7 @@ int main( int argc, char* argv[] )
     imwrite( basename + "canny.jpg" , dst ) ;
 
     // void limpiar( bool ero, Mat &img,Mat &res, int tipo , int tam)
-    limpiar( false, dst, dst, 2, 2 );
+    limpiar( false, dst, dst, 2, 1 );
     
     imwrite( basename + "limpieza.jpg" , dst ) ;
 
@@ -79,7 +92,8 @@ int main( int argc, char* argv[] )
 
     // comparar a lo que ya se tiene -----------------------------------------------------
     
-    bool entrenamiento = false;
+    // bool entrenamiento = false;
+    bool entrenamiento = (bool) entrenm;
 
     std::string archivo = "valores";
     Clasificacion clasif( 1 , entrenamiento );
@@ -87,6 +101,7 @@ int main( int argc, char* argv[] )
 
     if ( entrenamiento )
     {
+        cout << "entrenamiento\n";
         for( auto bd = distancias.begin() ; bd != distancias.end(); ++bd)
         {
             cout << *bd << endl;
@@ -97,7 +112,7 @@ int main( int argc, char* argv[] )
     else
     {
         conj.conjuntoAImagen( dst, res1, clasif );
-	    imwrite( "areasClasificadas.jpg" , res1 ) ;
+	    imwrite( basename + "areasClasificadas.jpg" , res1 ) ;
     }
 
     imwrite( basename + "Resultado.jpg", dst );    

@@ -8,12 +8,12 @@ DIR=$1
 
 ARC="valores"
 
-rm $ARC
+#rm $ARC
 
 for file in  $DIR/*.j*g 
 do
 	echo ./build/caras $file 
 	#echo ./build/caras $file >> $ARC
-	./build/caras $file 		#>> $ARC
+	./build/caras $file $2 		#>> $ARC
 
 done

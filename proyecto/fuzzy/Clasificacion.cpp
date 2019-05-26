@@ -27,6 +27,7 @@ class Clasificacion
         bool clasificar( float val );
         void guardar( std::string nombre );
         void cargar( std::string nombre );
+        void clean( );
 };
 
 // pos crea el asunto 
@@ -93,6 +94,57 @@ void Clasificacion::guardar( std::string nombre )
         myfile<<" "<< this->pert[a].limites() << ", " << this->pert[a].getCantidad() <<"\n";
     }
     myfile.close();
+}
+
+// eliminar las pertenencias con menor cantidad de apariciones que el umbral de apariciones
+void Clasificacion::clean( )
+{
+    float umbral = 0 ; 
+    int metodo = 0 ; 
+
+    // por promedio 
+    // if ( metodo = 0 )
+    // {
+        for (int a = 0; a < this->pert.size() ; a++)
+        {
+            umbral += this->pert[a].getCantidad();
+        }
+
+        std::cout << umbral << "\n";
+
+        umbral /= this->pert.size();
+
+        std::cout << umbral << "\n";
+    // }
+    // else if ( metodo = 1 ) // 
+    // {
+    //     int max = 0 ; 
+    //     int act;
+    //     for (int a = 0; a < this->pert.size() ; a++)
+    //     {
+    //         act = this->pert[a].getCantidad();
+    //         if ( act > max )
+    //         {
+    //             max = act;
+    //         }
+    //     }
+
+
+    // }
+    
+
+
+
+
+    for (int a = 0; a < this->pert.size() ; a++)
+    {
+        if ( this->pert[a].getCantidad() < umbral )
+        {
+            this->pert.erase( this->pert.begin( ) + a );
+            a--;
+        }
+    }
+
 }
 
 // B = borde S = superior I = inferior
