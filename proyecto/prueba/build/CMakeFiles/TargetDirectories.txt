@@ -1,0 +1,4 @@
+/home/kamilo2299/Escritorio/prueba/build/CMakeFiles/edit_cache.dir
+/home/kamilo2299/Escritorio/prueba/build/CMakeFiles/rebuild_cache.dir
+/home/kamilo2299/Escritorio/prueba/build/CMakeFiles/contorno.dir
+/home/kamilo2299/Escritorio/prueba/build/CMakeFiles/circulos.dir
