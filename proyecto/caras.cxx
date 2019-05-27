@@ -22,7 +22,6 @@ using namespace std;
 
 int main( int argc, char* argv[] )
 {
-    bool guardar = false;
     if( argc < 2 )
     {
       cout<<" ingresar : "<<argv[0]<<" (nombre imagen) (opcional: entrenamiento)"<<endl;
@@ -37,6 +36,8 @@ int main( int argc, char* argv[] )
         return -1;
     }
 
+
+
     Mat src = imread( imageName );
 
     if( src.empty() )
@@ -46,36 +47,34 @@ int main( int argc, char* argv[] )
         return -1;
     }
 
+    bool guardar = false;
+
+    // meta parametros ---------------------------
+    int valorKnn = 1;
+    int valorClasificacion = 1 ;
+    // -------------------------------------------
+
+
     std::stringstream ss( argv[ 1] );
     std::string basename;
     getline( ss, basename, '.' );
 
-    // basename = ""; // para las pruebas 
 
     Bordes bd;
 
     Mat dst;
     dst.create( src.size(), src.type() );   
     
-    
-
-
     // ubicar ---------------------------------------------------------------------------
 
-    // void canny(Mat &src, Mat &dst, int lowThreshold )
     bd.canny( src, dst, 25 );
     if ( guardar ) imwrite( basename + "canny.jpg" , dst ) ;
-
-    // void limpiar( bool ero, Mat &img,Mat &res, int tipo , int tam)
-    limpiar( false, dst, dst, 2, 1 );
     
+    limpiar( false, dst, dst, 2, 1 );
     if ( guardar ) imwrite( basename + "limpieza.jpg" , dst ) ;
 
-    // void binarizar(Mat & dest, Mat & hola , int umbral, int tope, int base)
     binarizar( dst , dst , 1, 0, 255);
-
     if ( guardar ) imwrite( basename + "bin.jpg" , dst ) ;
-
 
 	// buscar por similaridad ------------------------------------------------------------
 
@@ -97,7 +96,7 @@ int main( int argc, char* argv[] )
     bool entrenamiento = (bool) entrenm;
 
     std::string archivoFiltro = "valores";
-    Clasificacion clasif( 1 , entrenamiento );
+    Clasificacion clasif( valorClasificacion , entrenamiento );
     clasif.cargar( archivoFiltro );
 
     cout << "------------\n";
@@ -120,15 +119,23 @@ int main( int argc, char* argv[] )
 	    if ( guardar ) imwrite( basename + "areasClasificadas.jpg" , res1 ) ;
 
         std::vector<float> evals = clasif.clasificarLista( distancias ) ; 
+        
+        
+        for( auto bd = evals.begin() ; bd != evals.end(); ++bd)
+        {
+            std::cout << *bd << " ";
+        }
+        std::cout<<endl;
+
         string archivoPersonas = "personas";
 
-        Knn knn( 20 );
+        Knn knn( valorKnn );
         knn.cargar( archivoPersonas );
 
-        knn.clasificar( evals );
+        knn.clasificar( evals, basename );
 
         knn.guardar( archivoPersonas );
     }
-    cout << " terminado \n";
+    cout << " terminado \n\n\n";
     return 0;
 }

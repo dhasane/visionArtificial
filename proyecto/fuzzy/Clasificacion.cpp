@@ -101,7 +101,7 @@ std::vector<float> Clasificacion::clasificarLista( std::vector<float> valores )
 
         for (int v = 0; v < valores.size() ; v++)
         {
-            val += this->pert[a].evaluar( valores[ v ] ) ;
+            val += this->pert[a].evaluarDe0( valores[ v ] ) ;
         }
 
         evals.push_back( val ) ;

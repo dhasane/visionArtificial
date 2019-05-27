@@ -18,6 +18,7 @@
 struct Datos{
     vector<float> vals;
     int apariciones;
+    std::string nombre;
 };
 
 
@@ -30,7 +31,7 @@ class Knn
     public:
         Knn( int varMax );
         void imprimir();
-        bool clasificar( vector<float> dato );
+        bool clasificar( vector<float> dato, std::string nomImagen );
         void guardar( std::string nombre );
         void cargar( std::string nombre );
         float euclidiana( vector<float> d1, vector<float> d2 );
@@ -43,7 +44,7 @@ Knn::Knn( int varMax )
 }
 
 // compara con los otros valores, en caso de no existir un valido, se crea una nueva pertenencia 
-bool Knn::clasificar( vector<float> dato )
+bool Knn::clasificar( vector<float> dato, std::string nomImagen )
 {
     float distMin = 0; 
     float dist;
@@ -52,10 +53,12 @@ bool Knn::clasificar( vector<float> dato )
     bool encontrado = false;
     for (int a = 0; a < this->datos.size() ; a++)
     {
+        cout << this->datos[a].nombre << " ";
         dist = euclidiana( this->datos[a].vals , dato );
 
         if ( dist < this->varMax && ( primero || dist < distMin ) )
         {
+            std::cout << "encontrado \n";
             distMin = dist;
             pos = a;
             primero = false; 
@@ -68,11 +71,14 @@ bool Knn::clasificar( vector<float> dato )
         Datos dt;
         dt.vals = dato;
         dt.apariciones = 1;
+        dt.nombre = nomImagen;
         this->datos.push_back( dt );
+        std::cout << "nuevo : " << nomImagen << std::endl;
     }
     else
     {
         this->datos[pos].apariciones ++;
+        std::cout << nomImagen << " agregado a : " << this->datos[pos].nombre << std::endl;
     }
     
 }
@@ -154,7 +160,7 @@ void Knn::cargar( std::string nombre )
         }
         myfile.close();
     }
-    else std::cout << "archivo no encontrado"; 
+    else std::cout << "archivo no encontrado\n"; 
 
     
 }

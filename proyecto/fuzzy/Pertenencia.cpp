@@ -20,6 +20,7 @@ class Pertenencia
         Pertenencia( float i, float it, float ft,float f );
         Pertenencia( float i, float it, float ft,float f, int cant );
         float evaluar( float eval );
+        float evaluarDe0(float eval);
         std::string limites( );
         float centro( );
         bool agregar( float val );
@@ -77,6 +78,23 @@ float Pertenencia::evaluar(float eval)
         porc = 1 - (eval-this->finT)/(this->fin-this->finT);
     }
     else if(eval > this->fin)
+    {
+        porc = 0;
+    }
+
+    return porc;
+}
+
+// evalua el porcentaje 
+float Pertenencia::evaluarDe0(float eval)
+{
+    float porc;
+
+    if( this->ini <= eval && eval <= this->fin)
+    {
+        porc = ( eval - this->ini )/( this->fin - this->ini );
+    }
+    else
     {
         porc = 0;
     }
