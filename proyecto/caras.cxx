@@ -97,7 +97,7 @@ int main( int argc, char* argv[] )
     // bool entrenamiento = false;
     bool entrenamiento = (bool) entrenm;
 
-    std::string archivoFiltro = "valores";
+    std::string archivoFiltro = "../valores";
     Clasificacion clasif( 1 , entrenamiento );
     clasif.cargar( archivoFiltro );
 
@@ -129,7 +129,7 @@ int main( int argc, char* argv[] )
             cout << *bd << " ";
         }
         cout << endl;
-        string archivoPersonas = "personas";
+        string archivoPersonas = "../personas";
 
         cout << "clasificacion caras : \n";
 
