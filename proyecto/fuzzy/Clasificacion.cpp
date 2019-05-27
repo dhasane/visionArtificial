@@ -135,11 +135,11 @@ void Clasificacion::clean( )
             umbral += this->pert[a].getCantidad();
         }
 
-        std::cout << umbral << "\n";
+        // std::cout << umbral << "\n";
 
         umbral /= this->pert.size();
 
-        std::cout << umbral << "\n";
+        // std::cout << umbral << "\n";
     // }
     // else if ( metodo = 1 ) // 
     // {

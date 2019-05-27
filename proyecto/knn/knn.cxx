@@ -87,6 +87,7 @@ float Knn::euclidiana( vector<float> d1, vector<float> d2 )
         
         sqrt( dist );
     }
+    std::cout << dist << std::endl;
     return dist;
 }
 
@@ -94,7 +95,7 @@ void Knn::guardar( std::string nombre )
 {
     std::ofstream myfile;
     myfile.open (nombre);
-    imprimir();
+    // imprimir();
 
     std::cout  << this->datos.size() << "  ";
 

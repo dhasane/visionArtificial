@@ -22,6 +22,7 @@ using namespace std;
 
 int main( int argc, char* argv[] )
 {
+    bool guardar = false;
     if( argc < 2 )
     {
       cout<<" ingresar : "<<argv[0]<<" (nombre imagen) (opcional: entrenamiento)"<<endl;
@@ -63,18 +64,17 @@ int main( int argc, char* argv[] )
 
     // void canny(Mat &src, Mat &dst, int lowThreshold )
     bd.canny( src, dst, 25 );
-
-    imwrite( basename + "canny.jpg" , dst ) ;
+    if ( guardar ) imwrite( basename + "canny.jpg" , dst ) ;
 
     // void limpiar( bool ero, Mat &img,Mat &res, int tipo , int tam)
     limpiar( false, dst, dst, 2, 1 );
     
-    imwrite( basename + "limpieza.jpg" , dst ) ;
+    if ( guardar ) imwrite( basename + "limpieza.jpg" , dst ) ;
 
     // void binarizar(Mat & dest, Mat & hola , int umbral, int tope, int base)
     binarizar( dst , dst , 1, 0, 255);
 
-    imwrite( basename + "bin.jpg" , dst ) ;
+    if ( guardar ) imwrite( basename + "bin.jpg" , dst ) ;
 
 
 	// buscar por similaridad ------------------------------------------------------------
@@ -84,26 +84,25 @@ int main( int argc, char* argv[] )
 	Mat res1;
     conj.conjuntoAImagen( dst, res1 );
 	
-	imwrite( basename + "imagen.jpg" , res1 ) ;
+	if ( guardar ) imwrite( basename + "imagen.jpg" , res1 ) ;
 	
     
     Mat res2;
     res2.create( src.size(), src.type() );  
     vector<float> distancias = conj.conjuntoADistancias( res2 );
-    imwrite( basename + "distancia.jpg" , res2 ) ;
+    if ( guardar ) imwrite( basename + "distancia.jpg" , res2 ) ;
 
     // comparar a lo que ya se tiene -----------------------------------------------------
     
-    // bool entrenamiento = false;
     bool entrenamiento = (bool) entrenm;
 
-    std::string archivoFiltro = "../valores";
+    std::string archivoFiltro = "valores";
     Clasificacion clasif( 1 , entrenamiento );
     clasif.cargar( archivoFiltro );
 
     cout << "------------\n";
 
-    imwrite( basename + "Resultado.jpg", dst ); 
+    if ( guardar ) imwrite( basename + "Resultado.jpg", dst ); 
 
     if ( entrenamiento )
     {
@@ -118,39 +117,18 @@ int main( int argc, char* argv[] )
     else
     {
         conj.conjuntoAImagen( dst, res1, clasif );
-	    imwrite( basename + "areasClasificadas.jpg" , res1 ) ;
-
-        cout << clasif.size() << endl; 
+	    if ( guardar ) imwrite( basename + "areasClasificadas.jpg" , res1 ) ;
 
         std::vector<float> evals = clasif.clasificarLista( distancias ) ; 
-
-        for( auto bd = evals.begin() ; bd != evals.end(); ++bd)
-        {
-            cout << *bd << " ";
-        }
-        cout << endl;
-        string archivoPersonas = "../personas";
-
-        cout << "clasificacion caras : \n";
+        string archivoPersonas = "personas";
 
         Knn knn( 20 );
         knn.cargar( archivoPersonas );
 
-        cout << "\n\n\nimprimir : \n";
-        knn.imprimir( );
-
-        cout << "\n\n\n\n\nclasificar : \n";
-
         knn.clasificar( evals );
 
-        cout << "\n\n\nimprimir : \n";
-        knn.imprimir( );
-
-        cout << "\n\n\n\n\nguardar : \n";
         knn.guardar( archivoPersonas );
     }
     cout << " terminado \n";
-       
-
     return 0;
 }
