@@ -28,6 +28,8 @@ class Clasificacion
         void guardar( std::string nombre );
         void cargar( std::string nombre );
         void clean( );
+        int size( );
+        std::vector<float> clasificarLista( std::vector<float> valores ) ; 
 };
 
 // pos crea el asunto 
@@ -37,6 +39,10 @@ Clasificacion::Clasificacion( float varMax, bool entrenamiento )
     this->entrenamiento = entrenamiento;
 }
 
+int Clasificacion::size()
+{
+    return this->pert.size();
+}
 
 // compara con los otros valores, en caso de no existir un valido, se crea una nueva pertenencia 
 bool Clasificacion::clasificar( float val )
@@ -83,6 +89,25 @@ bool Clasificacion::clasificar( float val )
         }
     }
     return valido;
+}
+
+std::vector<float> Clasificacion::clasificarLista( std::vector<float> valores )
+{
+    std::vector<float> evals;
+    
+    for (int a = 0; a < this->pert.size() ; a++)
+    {
+        float val = 0;
+
+        for (int v = 0; v < valores.size() ; v++)
+        {
+            val += this->pert[a].evaluar( valores[ v ] ) ;
+        }
+
+        evals.push_back( val ) ;
+    }
+
+    return evals;
 }
 
 void Clasificacion::guardar( std::string nombre )
@@ -154,7 +179,7 @@ void Clasificacion::cargar( std::string nombre )
     std::string line;
     std::ifstream myfile (nombre);
     char * temp = new char[50];
-    char *token;
+    char * token ;
     int pos;
     float BMinI, BMinS, BMaxS, BMaxI;
 
@@ -198,7 +223,6 @@ void Clasificacion::cargar( std::string nombre )
         myfile.close();
     }
     else std::cout << "Unable to open file"; 
-    
 }
 
 // crea e inserta una nueva Pertenencia

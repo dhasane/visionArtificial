@@ -14,12 +14,8 @@
 
 #include "../fuzzy/Clasificacion.cpp"
 
-//using namespace cv;
-//using namespace std;
-
-
-Vec3b BLANCO = Vec3b(255,255,255);
-Vec3b NEGRO  = Vec3b(0,0,0);
+#define BLANCO  Vec3b(255,255,255)
+#define NEGRO   Vec3b(0,0,0)
 
 class Punto{
 
@@ -27,7 +23,6 @@ class Punto{
         int x;
         int y;
         Vec3b color;
-
         Vec3b distancia; // distancia a borde :v 
 
         Punto(int x, int y ,Vec3b col )
@@ -120,13 +115,13 @@ class Recorrido{
 
 class Area{
 
-
     vector<Punto> *puntos;  // puntos del area
     deque<Punto> *posibles;// posibles puntos del area :D
 	vector<Punto> *borde;   // puntos del borde
     int id;
     Punto *centroPromedio;
 
+    float *numeroForma ;
     public:
         
         Area( Punto p , int id )
@@ -138,6 +133,7 @@ class Area{
 			borde = new vector<Punto>();
 
             centroPromedio=NULL;
+            this->numeroForma = NULL;
         }
 
         int size()
@@ -202,23 +198,6 @@ class Area{
                 it->imprimir();
         }
         
-        void areaAImagen(Mat &img, int cantidad)
-        {
-            int r, g ,b ;
-            int vv = 255 *3 / cantidad * this->id;
-            r = vv % 256;
-            vv -= 255;
-            if ( vv > 0) g = vv % 256;
-            vv -= 255;
-            if ( vv > 0) b = vv % 256;
-            Vec3b color = Vec3b(r,g,b);
-
-            for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
-            {
-                img.at<Vec3b>( Point(pt->x, pt->y) ) = color;
-            }
-        }
-
         float distanciaDeBorde( Punto pt )
         {
             int distMin = 0; // distancia minima al borde
@@ -311,39 +290,37 @@ class Area{
 		float areaADistancia( Mat &img )
         {
             getCentro();
-            float dst;
-            int idst;
+            // float dst;
+            // int idst;
 
-			float forma = 0;
+			// float forma = 0;
 
             if (centroPromedio != NULL)
             {
-				cout << this->id << "   " << this->size() << endl;
-                for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
-                {
-                    dst = distanciaDeBorde( *pt ) ;
-                    dst *= 255;
-                    idst = int(dst);
-                    img.at<Vec3b>( Point( pt->x, pt->y ) ) = Vec3b( idst,idst,idst ) ;
+				// cout << this->id << "   " << this->size() << endl;
+                // for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
+                // {
+                //     dst = distanciaDeBorde( *pt ) ;
+                //     dst *= 255;
+                //     idst = int(dst);
+                //     img.at<Vec3b>( Point( pt->x, pt->y ) ) = Vec3b( idst,idst,idst ) ;
 
-					dst /= puntos->size();
-                    forma += dst;
-                }
+				// 	dst /= puntos->size();
+                //     forma += dst;
+                // }
+                conseguirNumeroForma();
 			}
-			return forma;
+			return *this->numeroForma;
         }
 
-        float areaADistancia( Mat &img, Clasificacion clasif )
+        void conseguirNumeroForma()
         {
-            getCentro();
-            float dst;
-            int idst;
-
-			float forma = 0;
-
-            if (centroPromedio != NULL)
+            if ( this->numeroForma == NULL )
             {
-				cout << this->id << "   " << this->size() << endl;
+                // cout << this->id << "   " << this->size() << endl;
+                float dst;
+                int idst;
+                float forma = 0;
                 for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
                 {
                     dst = distanciaDeBorde( *pt ) ;
@@ -352,11 +329,23 @@ class Area{
                     // img.at<Vec3b>( Point( pt->x, pt->y ) ) = Vec3b( idst,idst,idst ) ;
                     pt->distancia = Vec3b( idst,idst,idst ) ;
 
-					dst /= puntos->size();
+                    dst /= puntos->size();
                     forma += dst;
                 }
+                this->numeroForma = new float();
+                *this->numeroForma = forma;
+            }
+        }
 
-                if ( clasif.clasificar( forma ) )
+        void areaADistancia( Mat &img, Clasificacion clasif )
+        {
+            getCentro();
+
+            if (centroPromedio != NULL)
+            {
+                conseguirNumeroForma();
+
+                if ( clasif.clasificar( *this->numeroForma ) )
                 {
                     for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
                     {
@@ -364,9 +353,27 @@ class Area{
                     }
                 }
 			}
-			return forma;
         }
 
+        // crea la imagen con las areas encontradas 
+        void areaAImagen(Mat &img, int cantidad)
+        {
+            int r, g ,b ;
+            int vv = 255 *3 / cantidad * this->id;
+            r = vv % 256;
+            vv -= 255;
+            if ( vv > 0) g = vv % 256;
+            vv -= 255;
+            if ( vv > 0) b = vv % 256;
+            Vec3b color = Vec3b(r,g,b);
+
+            for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
+            {
+                img.at<Vec3b>( Point(pt->x, pt->y) ) = color;
+            }
+        }
+
+        // crea la imagen con las areas encontradas, que cumplan las condiciones en clasificacion
         void areaAImagen( Mat &img,int cantidad, Clasificacion clasif )
         {
             getCentro();
@@ -377,18 +384,7 @@ class Area{
 
             if (centroPromedio != NULL)
             {
-				cout << this->id << "   " << this->size() << endl;
-                for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
-                {
-                    dst = distanciaDeBorde( *pt ) ;
-                    dst *= 255;
-                    idst = int(dst);
-                    // img.at<Vec3b>( Point( pt->x, pt->y ) ) = Vec3b( idst,idst,idst ) ;
-                    pt->distancia = Vec3b( idst,idst,idst ) ;
-
-					dst /= puntos->size();
-                    forma += dst;
-                }
+                conseguirNumeroForma(); 
 
                 if ( clasif.clasificar( forma ) )
                 {
@@ -407,6 +403,12 @@ class Area{
                     }
                 }
 			}
+        }
+
+        float getNumeroForma()
+        {
+            conseguirNumeroForma();
+            return *this->numeroForma;
         }
 };
 
@@ -507,6 +509,7 @@ class Conjunto{
             }    
         }
 
+        // agrega un area al conjunto 
         void agregar(Area area)
         {
             if ( area.size() > 0)
@@ -516,57 +519,48 @@ class Conjunto{
             
         }
 
+        // retorna la cantidad de areas 
         int size()
         {
             return areas->size();
         }
-		  
-        // void conjuntoADistancias( Mat &dest )
-        // {
-        //     dest = cv::Scalar(0,0,0);
-        //     cout<< this-> tamx << "   " << this->tamy << endl;
-            
-        //     for (auto area = areas->begin(); area != areas->end(); ++area)
-        //     {
-        //         area->areaADistancia( dest );
-        //     }
-        // }
+
 
         vector<float> conjuntoADistancias( Mat &dest )
         {
 			float promedio = 0;
-
             vector<float> distancias;
-
-            // for (auto area = areas->begin(); area != areas->end(); ++area)
-			// {
-			// 	promedio += area->size();
-			// }
-			// promedio /= this->size();
-
-			// cout << " promedio " << promedio << endl;
-
             dest = cv::Scalar(0,0,0);
-            // cout<< this-> tamx << "   " << this->tamy << endl;
             
             for (auto area = areas->begin(); area != areas->end(); ++area)
             {
-				//if ( area->size( ) >= promedio )
 				if ( area->size( ) > 2 )
 				{
-					// float val = area->areaADistancia( dest ) ;
                     distancias.push_back( area->areaADistancia( dest ) ) ;
-
-					// if ( val != 0 ) 
-					// {
-					// 	cout << val << endl;
-					// }
 				}
             }
             return distancias;
         }
 
-        void conjuntoAImagen(Mat &img, Mat &res)
+        vector<float> conjuntoADistancias( Mat &dest, Clasificacion clasif )
+        {
+			float promedio = 0;
+
+            vector<float> distancias;
+            dest = cv::Scalar(0,0,0);
+
+            
+            for (auto area = areas->begin(); area != areas->end(); ++area)
+            {
+				if ( area->size( ) > 2 )
+				{
+                    distancias.push_back( area->getNumeroForma() ) ;
+				}
+            }
+            return distancias;
+        }
+
+        void conjuntoAImagen(Mat &img, Mat &res )
         {
             res = img.clone();
             res.create( img.size(), img.type() );

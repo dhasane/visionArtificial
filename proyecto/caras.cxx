@@ -18,6 +18,8 @@ using namespace std;
 
 #include "fuzzy/Clasificacion.cpp"
 
+#include "knn/knn.cxx"
+
 int main( int argc, char* argv[] )
 {
     if( argc < 2 )
@@ -95,9 +97,13 @@ int main( int argc, char* argv[] )
     // bool entrenamiento = false;
     bool entrenamiento = (bool) entrenm;
 
-    std::string archivo = "valores";
+    std::string archivoFiltro = "valores";
     Clasificacion clasif( 1 , entrenamiento );
-    clasif.cargar( archivo );
+    clasif.cargar( archivoFiltro );
+
+    cout << "------------\n";
+
+    imwrite( basename + "Resultado.jpg", dst ); 
 
     if ( entrenamiento )
     {
@@ -107,15 +113,44 @@ int main( int argc, char* argv[] )
             cout << *bd << endl;
             clasif.clasificar( *bd );
         }
-        clasif.guardar( archivo );
+        clasif.guardar( archivoFiltro );
     }
     else
     {
         conj.conjuntoAImagen( dst, res1, clasif );
 	    imwrite( basename + "areasClasificadas.jpg" , res1 ) ;
-    }
 
-    imwrite( basename + "Resultado.jpg", dst );    
+        cout << clasif.size() << endl; 
+
+        std::vector<float> evals = clasif.clasificarLista( distancias ) ; 
+
+        for( auto bd = evals.begin() ; bd != evals.end(); ++bd)
+        {
+            cout << *bd << " ";
+        }
+        cout << endl;
+        string archivoPersonas = "personas";
+
+        cout << "clasificacion caras : \n";
+
+        Knn knn( 20 );
+        knn.cargar( archivoPersonas );
+
+        cout << "\n\n\nimprimir : \n";
+        knn.imprimir( );
+
+        cout << "\n\n\n\n\nclasificar : \n";
+
+        knn.clasificar( evals );
+
+        cout << "\n\n\nimprimir : \n";
+        knn.imprimir( );
+
+        cout << "\n\n\n\n\nguardar : \n";
+        knn.guardar( archivoPersonas );
+    }
+    cout << " terminado \n";
+       
 
     return 0;
 }
