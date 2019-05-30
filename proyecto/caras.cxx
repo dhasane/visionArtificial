@@ -47,7 +47,7 @@ int main( int argc, char* argv[] )
         return -1;
     }
 
-    bool guardar = false;
+    bool guardar = true;
 
     // meta parametros ---------------------------
     int valorKnn = 1;
@@ -99,6 +99,8 @@ int main( int argc, char* argv[] )
     Clasificacion clasif( valorClasificacion , entrenamiento );
     clasif.cargar( archivoFiltro );
 
+    clasif.imprimir( );
+
     cout << "------------\n";
 
     if ( guardar ) imwrite( basename + "Resultado.jpg", dst ); 
@@ -115,8 +117,11 @@ int main( int argc, char* argv[] )
     }
     else
     {
+        cout << " holaaaa ";
         conj.conjuntoAImagen( dst, res1, clasif );
 	    if ( guardar ) imwrite( basename + "areasClasificadas.jpg" , res1 ) ;
+
+        std::cout << "aaaaaaa "<< std::endl;
 
         std::vector<float> evals = clasif.clasificarLista( distancias ) ; 
         

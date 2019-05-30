@@ -1,0 +1,10 @@
+
+para correr el programa compilar y correr como
+
+./caras (ubicacion imagen) (archivo filtro) (archivo clasificacion) ( opcional: entrenamiento ) 
+
+el archivo de clasificacion puede no haber sido creado, se creara al final de la ejecuacion en caso dado 
+
+poner entrenamiento en 1, unicamente en caso de querer generar un nuevo archivo de filtro, para esto sera necesario correr el programa con varias imagenes
+
+el archivo de filtro necesitara la eliminacion de los valores menos encontrados, para esto "Clasificacion" tiene una funcion clean, que elimina los datos bajo el promedio

@@ -290,6 +290,7 @@ class Area{
 		float areaADistancia( Mat &img )
         {
             getCentro();
+
             // float dst;
             // int idst;
 
@@ -309,6 +310,13 @@ class Area{
                 //     forma += dst;
                 // }
                 conseguirNumeroForma();
+
+                for (auto pt = puntos->begin(); pt != puntos->end(); ++pt)
+                {
+                    // std::cout << pt->distancia << std::endl;
+                    img.at<Vec3b>( Point( pt->x, pt->y ) ) = pt->distancia ;
+                }
+                imwrite( "prueba.jpg", img );
 			}
 			return *this->numeroForma;
         }
@@ -377,17 +385,14 @@ class Area{
         void areaAImagen( Mat &img,int cantidad, Clasificacion clasif )
         {
             getCentro();
-            float dst;
-            int idst;
-
-			float forma = 0;
 
             if (centroPromedio != NULL)
             {
                 conseguirNumeroForma(); 
 
-                if ( clasif.clasificar( forma ) )
+                if ( clasif.clasificar( *this->numeroForma ) )
                 {
+                    std::cout << "clasif \n";
                     int r, g ,b ;
                     int vv = 255 *3 / cantidad * this->id;
                     r = vv % 256;
@@ -542,12 +547,11 @@ class Conjunto{
             return distancias;
         }
 
-        vector<float> conjuntoADistancias( Mat &dest, Clasificacion clasif )
+        vector<float> conjuntoADistancias( Clasificacion clasif )
         {
 			float promedio = 0;
 
             vector<float> distancias;
-            dest = cv::Scalar(0,0,0);
 
             
             for (auto area = areas->begin(); area != areas->end(); ++area)
